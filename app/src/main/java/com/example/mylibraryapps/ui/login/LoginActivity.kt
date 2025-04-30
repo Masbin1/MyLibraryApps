@@ -56,7 +56,7 @@ class LoginActivity : AppCompatActivity() {
         startActivity(intent)
 
         // Menutup LoginActivity agar tidak bisa kembali
-        finish()
+//        finish()
         // TODO: Setelah login sukses, pindah ke dashboard
     }
 }

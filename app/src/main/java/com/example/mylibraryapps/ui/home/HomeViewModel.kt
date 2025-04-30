@@ -1,13 +1,16 @@
 package com.example.mylibraryapps.ui.home
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.mylibraryapps.R
+import com.example.mylibraryapps.model.Book
 
 class HomeViewModel : ViewModel() {
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is home Fragment"
+    fun getAllBooks(): List<Book> {
+        return listOf(
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori"),
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori"),
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori"),
+        )
     }
-    val text: LiveData<String> = _text
 }

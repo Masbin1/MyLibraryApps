@@ -27,6 +27,7 @@
         <!-- LoginActivity -->
         <activity android:name=".ui.login.LoginActivity" />
         <activity android:name=".ui.login.RegisterActivity" />
+        <activity android:name=".ui.book.BookAdapter" />
 
         <!-- MainActivity (dashboard/home dsb) -->
         <activity

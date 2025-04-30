@@ -1,22 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragmentHome"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.HomeFragment">
+    android:background="#F6F6F6"
+    android:orientation="vertical"
+    android:padding="16dp">
 
-    <TextView
-        android:id="@+id/text_home"
+    <!-- Greeting and Notification -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:gravity="fill_horizontal"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvGreeting"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#2E2263"
+            android:gravity="start|center_vertical"
+            android:padding="12dp"
+            android:text="Halo, Anggota"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/ivNotification"
+            android:layout_width="61dp"
+            android:layout_height="match_parent"
+            android:background="#2E2263"
+            android:gravity="end"
+            android:padding="12dp"
+            android:src="@drawable/ic_launcher_foreground"
+            app:tint="@android:color/white" />
+    </LinearLayout>
+
+    <!-- Search Bar -->
+    <EditText
+        android:id="@+id/etSearch"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:hint="Cari buku..."
+        android:drawableStart="@drawable/ic_search"
+        android:paddingStart="12dp"
+        android:background="#FFFFF59D"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Filter Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="12dp">
+
+        <Button
+            android:id="@+id/btnSemua"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Semua"
+            android:layout_marginHorizontal="8dp"/>
+
+        <Button
+            android:id="@+id/btnSastra"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sastra"
+            android:layout_marginHorizontal="8dp"/>
+
+        <Button
+            android:id="@+id/btnSejarah"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sejarah"
+            android:layout_marginHorizontal="8dp"/>
+
+        <Button
+            android:id="@+id/btnFiksi"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fiksi"
+            android:layout_marginHorizontal="8dp"/>
+    </LinearLayout>
+
+    <!-- RecyclerView Book Grid -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvBooks"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="12dp"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="2"/>
+</LinearLayout>
