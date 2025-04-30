@@ -8,9 +8,9 @@ class HomeViewModel : ViewModel() {
 
     fun getAllBooks(): List<Book> {
         return listOf(
-            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori"),
-            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori"),
-            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori"),
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
         )
     }
 }

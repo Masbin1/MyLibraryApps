@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentHomeBinding
 import com.example.mylibraryapps.model.Book
 
@@ -53,12 +54,25 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupRecyclerView(books: List<Book>) {
-        bookAdapter = BookAdapter(books)
+        bookAdapter = BookAdapter(books) { selectedBook ->
+            val fragment = BookDetailFragment().apply {
+                arguments = Bundle().apply {
+                    putParcelable("book", selectedBook)
+                }
+            }
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.nav_host_fragment_activity_main
+                    , fragment)  // Ganti ID container sesuai XML-mu
+                .addToBackStack(null)
+                .commit()
+        }
+
         binding.rvBooks.apply {
             layoutManager = GridLayoutManager(requireContext(), 2)
             adapter = bookAdapter
         }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

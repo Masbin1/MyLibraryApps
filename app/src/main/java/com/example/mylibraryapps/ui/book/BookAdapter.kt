@@ -7,27 +7,30 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.mylibraryapps.databinding.ItemBookBinding
 import com.example.mylibraryapps.model.Book
 
-class BookAdapter(private val bookList: List<Book>) :
-    RecyclerView.Adapter<BookAdapter.BookViewHolder>() {
+class BookAdapter(
+    private val books: List<Book>,
+    private val onItemClick: (Book) -> Unit
+) : RecyclerView.Adapter<BookAdapter.BookViewHolder>() {
 
-    inner class BookViewHolder(val binding: ItemBookBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    inner class BookViewHolder(val binding: ItemBookBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(book: Book) {
             binding.tvTitle.text = book.title
-            binding.ivCover.setImageResource(book.imageResId)
+            // isi data lainnya...
+            binding.root.setOnClickListener {
+                onItemClick(book)  // Trigger callback
+            }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder {
-        val binding = ItemBookBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
+        val binding = ItemBookBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return BookViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
-        holder.bind(bookList[position])
+        holder.bind(books[position])
     }
 
-    override fun getItemCount(): Int = bookList.size
+    override fun getItemCount() = books.size
 }
+
