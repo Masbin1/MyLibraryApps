@@ -16,21 +16,35 @@ class BookDetailFragment : Fragment() {
     private lateinit var book: Book
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentBookDetailBinding.inflate(inflater, container, false)
-        val view = binding.root
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         // Mendapatkan data buku yang dikirim
         arguments?.let {
             book = it.getParcelable("book") ?: return@let
-            binding.tvBookTitle.text = book.title
-            binding.tvBookAuthor.text = book.author
-            binding.tvBookDescription.text = book.description
-        }
 
-        return view
+            // Set data ke view sesuai XML layout
+            binding.tvBookTitle.text = book.title
+            binding.ivCover.setImageResource(book.coverResId) // Asumsikan Book memiliki properti coverResId
+
+            // Set listener untuk tombol kembali
+            binding.btnBack.setOnClickListener {
+                requireActivity().onBackPressed()
+            }
+
+            // Set listener untuk tombol pinjam
+            binding.btnPinjam.setOnClickListener {
+                // Handle peminjaman buku di sini
+            }
+        }
     }
 
     override fun onDestroyView() {
@@ -40,12 +54,11 @@ class BookDetailFragment : Fragment() {
 
     companion object {
         fun newInstance(book: Book): BookDetailFragment {
-            val fragment = BookDetailFragment()
-            val bundle = Bundle().apply {
-                putParcelable("book", book)
+            return BookDetailFragment().apply {
+                arguments = Bundle().apply {
+                    putParcelable("book", book)
+                }
             }
-            fragment.arguments = bundle
-            return fragment
         }
     }
 }

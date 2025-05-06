@@ -4,10 +4,12 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Book(
-    val imageResId: Int,
     val title: String,
-    val category: String,
     val author: String,
+    val year: String,
+    val publisher: String,
+    val type: String,
     val description: String,
+    val coverResId: Int
 ) : Parcelable
 
