@@ -11,6 +11,13 @@ class HomeViewModel : ViewModel() {
             Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
             Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
             Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
+            Book(R.drawable.ic_book_dummy, "Judul buku", "Kategori","Kategori","Kategori"),
         )
     }
 }

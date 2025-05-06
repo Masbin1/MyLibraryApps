@@ -22,13 +22,11 @@
         android:name="com.example.mylibraryapps.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_notifications" />
+    <fragment
+        android:id="@+id/bookDetailFragment"
+        android:name="com.example.mylibraryapps.ui.home.BookDetailFragment"
+        android:label="Book Detail"
+        tools:layout="@layout/fragment_book_detail" />
 
-    <FrameLayout
-        android:id="@+id/fragment_container"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/nav_view"
-        />
 
 </navigation>

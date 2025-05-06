@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentHomeBinding
@@ -55,16 +56,10 @@ class HomeFragment : Fragment() {
 
     private fun setupRecyclerView(books: List<Book>) {
         bookAdapter = BookAdapter(books) { selectedBook ->
-            val fragment = BookDetailFragment().apply {
-                arguments = Bundle().apply {
-                    putParcelable("book", selectedBook)
-                }
+            val bundle = Bundle().apply {
+                putParcelable("book", selectedBook)
             }
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.nav_host_fragment_activity_main
-                    , fragment)  // Ganti ID container sesuai XML-mu
-                .addToBackStack(null)
-                .commit()
+            findNavController().navigate(R.id.bookDetailFragment, bundle)
         }
 
         binding.rvBooks.apply {
@@ -72,6 +67,7 @@ class HomeFragment : Fragment() {
             adapter = bookAdapter
         }
     }
+
 
 
     override fun onDestroyView() {
