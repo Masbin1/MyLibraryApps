@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragmentHome"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -32,7 +33,7 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_gravity="center_vertical"
-            android:src="@drawable/ic_launcher_foreground"
+            android:src="@drawable/ic_notifications_black_24dp"
             app:tint="@android:color/white" />
     </LinearLayout>
 
@@ -44,72 +45,86 @@
         android:padding="16dp"> <!-- Padding dipindah ke sini -->
 
         <!-- Search Bar -->
+
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp">
+            app:cardCornerRadius="12dp">
 
-            <EditText
-                android:id="@+id/etSearch"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:hint="Cari buku..."
-                android:drawableStart="@drawable/ic_search"
-                android:paddingStart="12dp"
-                android:background="@android:color/transparent"
-                android:inputType="text"
-                android:textColorHint="#888" />
+                android:background="@drawable/bg_rounded_search"
+                android:orientation="horizontal"
+                android:paddingStart="12dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/ic_search"
+                    app:tint="#000000" />
+
+                <EditText
+                    android:id="@+id/etSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/transparent"
+                    android:hint="Cari buku..."
+                    android:inputType="text"
+                    android:paddingStart="8dp"
+                    android:textColorHint="#000000" />
+            </LinearLayout>
         </androidx.cardview.widget.CardView>
 
         <!-- Filter Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="12dp"
             android:gravity="center"
-            android:layout_marginBottom="12dp">
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/btnSemua"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Semua"
+                android:layout_marginHorizontal="6dp"
                 android:background="@drawable/bg_button_filter"
-                android:textColor="#2E2263"
-                android:layout_marginHorizontal="6dp"/>
+                android:text="Semua"
+                android:textColor="#2E2263" />
 
             <Button
                 android:id="@+id/btnSastra"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sastra"
+                android:layout_marginHorizontal="6dp"
                 android:background="@drawable/bg_button_filter"
-                android:textColor="#2E2263"
-                android:layout_marginHorizontal="6dp"/>
+                android:text="Sastra"
+                android:textColor="#2E2263" />
 
             <Button
                 android:id="@+id/btnSejarah"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sejarah"
+                android:layout_marginHorizontal="6dp"
                 android:background="@drawable/bg_button_filter"
-                android:textColor="#2E2263"
-                android:layout_marginHorizontal="6dp"/>
+                android:text="Sejarah"
+                android:textColor="#2E2263" />
 
             <Button
                 android:id="@+id/btnFiksi"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fiksi"
+                android:layout_marginHorizontal="6dp"
                 android:background="@drawable/bg_button_filter"
-                android:textColor="#2E2263"
-                android:layout_marginHorizontal="6dp"/>
+                android:text="Fiksi"
+                android:textColor="#2E2263" />
         </LinearLayout>
 
         <!-- RecyclerView Book Grid -->
@@ -117,9 +132,9 @@
             android:id="@+id/rvBooks"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
             android:layout_marginTop="12dp"
+            android:layout_weight="1"
             app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-            app:spanCount="2"/>
+            app:spanCount="2" />
     </LinearLayout>
 </LinearLayout>
