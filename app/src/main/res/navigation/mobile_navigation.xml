@@ -22,11 +22,28 @@
         android:name="com.example.mylibraryapps.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_notifications" />
+
+    <fragment
+        android:id="@+id/navigation_account"
+        android:name="com.example.mylibraryapps.ui.account.AccountFragment"
+        android:label="Account"
+        tools:layout="@layout/fragment_account">
+        <action
+            android:id="@+id/action_accountFragment_to_accountSettingsFragment"
+            app:destination="@id/accountSettingsFragment" />
+    </fragment>
+
     <fragment
         android:id="@+id/bookDetailFragment"
         android:name="com.example.mylibraryapps.ui.home.BookDetailFragment"
         android:label="Book Detail"
         tools:layout="@layout/fragment_book_detail" />
+        
+    <fragment
+        android:id="@+id/accountSettingsFragment"
+        android:name="com.example.mylibraryapps.ui.account.AccountSettingsFragment"
+        android:label="Account Settings"
+        tools:layout="@layout/fragment_account_settings" />
 
 
 </navigation>
