@@ -6,120 +6,120 @@
     android:layout_height="match_parent"
     android:background="#F6F6F6"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="0dp"> <!-- Padding diubah menjadi 0dp -->
 
-    <!-- Greeting and Notification -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="6dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#2E2263"
-            android:orientation="horizontal"
-            android:padding="12dp">
-
-            <TextView
-                android:id="@+id/tvGreeting"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="start|center_vertical"
-                android:text="Halo, Anggota"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <ImageView
-                android:id="@+id/ivNotification"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center_vertical"
-                android:src="@drawable/ic_launcher_foreground"
-                app:tint="@android:color/white" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- Search Bar -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
-
-        <EditText
-            android:id="@+id/etSearch"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:hint="Cari buku..."
-            android:drawableStart="@drawable/ic_search"
-            android:paddingStart="12dp"
-            android:background="@android:color/transparent"
-            android:inputType="text"
-            android:textColorHint="#888" />
-    </androidx.cardview.widget.CardView>
-
-    <!-- Filter Buttons -->
+    <!-- Header - sekarang akan menempel di atas -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#2E2263"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="12dp">
+        android:padding="12dp">
 
-        <Button
-            android:id="@+id/btnSemua"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/tvGreeting"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Semua"
-            android:background="@drawable/bg_button_filter"
-            android:textColor="#2E2263"
-            android:layout_marginHorizontal="6dp"/>
+            android:layout_weight="1"
+            android:gravity="start|center_vertical"
+            android:text="Halo, Anggota"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnSastra"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sastra"
-            android:background="@drawable/bg_button_filter"
-            android:textColor="#2E2263"
-            android:layout_marginHorizontal="6dp"/>
-
-        <Button
-            android:id="@+id/btnSejarah"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sejarah"
-            android:background="@drawable/bg_button_filter"
-            android:textColor="#2E2263"
-            android:layout_marginHorizontal="6dp"/>
-
-        <Button
-            android:id="@+id/btnFiksi"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Fiksi"
-            android:background="@drawable/bg_button_filter"
-            android:textColor="#2E2263"
-            android:layout_marginHorizontal="6dp"/>
+        <ImageView
+            android:id="@+id/ivNotification"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_launcher_foreground"
+            app:tint="@android:color/white" />
     </LinearLayout>
 
-    <!-- RecyclerView Book Grid -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvBooks"
+    <!-- Konten lainnya dengan padding 16dp -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="12dp"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="2"/>
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp"> <!-- Padding dipindah ke sini -->
+
+        <!-- Search Bar -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <EditText
+                android:id="@+id/etSearch"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:hint="Cari buku..."
+                android:drawableStart="@drawable/ic_search"
+                android:paddingStart="12dp"
+                android:background="@android:color/transparent"
+                android:inputType="text"
+                android:textColorHint="#888" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Filter Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="12dp">
+
+            <Button
+                android:id="@+id/btnSemua"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Semua"
+                android:background="@drawable/bg_button_filter"
+                android:textColor="#2E2263"
+                android:layout_marginHorizontal="6dp"/>
+
+            <Button
+                android:id="@+id/btnSastra"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sastra"
+                android:background="@drawable/bg_button_filter"
+                android:textColor="#2E2263"
+                android:layout_marginHorizontal="6dp"/>
+
+            <Button
+                android:id="@+id/btnSejarah"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sejarah"
+                android:background="@drawable/bg_button_filter"
+                android:textColor="#2E2263"
+                android:layout_marginHorizontal="6dp"/>
+
+            <Button
+                android:id="@+id/btnFiksi"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fiksi"
+                android:background="@drawable/bg_button_filter"
+                android:textColor="#2E2263"
+                android:layout_marginHorizontal="6dp"/>
+        </LinearLayout>
+
+        <!-- RecyclerView Book Grid -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvBooks"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="12dp"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="2"/>
+    </LinearLayout>
 </LinearLayout>
