@@ -35,7 +35,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:background="#FFFFFF">
 
             <ImageView
                 android:layout_width="80dp"
@@ -52,7 +53,8 @@
                 android:layout_marginTop="8dp"
                 android:text="Nama Pengguna"
                 android:textSize="18sp"
-                android:textStyle="bold"/>
+                android:textStyle="bold"
+                android:textColor="#000000"/>
 
             <TextView
                 android:id="@+id/tvEmail"
@@ -93,6 +95,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:text="Pengaturan Akun"
+                android:textColor="#000000"
                 android:textSize="16sp"/>
 
             <View
