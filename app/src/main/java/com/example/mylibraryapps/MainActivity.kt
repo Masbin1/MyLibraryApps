@@ -21,8 +21,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val navView: BottomNavigationView = binding.navView
-
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         val appBarConfiguration = AppBarConfiguration(
@@ -31,6 +31,39 @@ class MainActivity : AppCompatActivity() {
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+        
+        // Custom handling for bottom navigation to ensure proper navigation
+        navView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_home -> {
+                    if (navController.currentDestination?.id != R.id.navigation_home) {
+                        navController.navigate(R.id.navigation_home)
+                    }
+                    true
+                }
+                R.id.navigation_list_book -> {
+                    // If we're in bookDetailFragment, navigate back to list
+                    if (navController.currentDestination?.id == R.id.bookDetailFragment) {
+                        navController.navigate(R.id.navigation_list_book)
+                        true
+                    } else if (navController.currentDestination?.id != R.id.navigation_list_book) {
+                        navController.navigate(R.id.navigation_list_book)
+                        true
+                    } else {
+                        true
+                    }
+                }
+                R.id.navigation_account -> {
+                    if (navController.currentDestination?.id != R.id.navigation_account) {
+                        navController.navigate(R.id.navigation_account)
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+        
+        // Set the initially selected item
+        navView.selectedItemId = R.id.navigation_home
     }
 }
