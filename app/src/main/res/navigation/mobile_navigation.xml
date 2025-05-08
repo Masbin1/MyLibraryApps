@@ -35,7 +35,7 @@
 
     <fragment
         android:id="@+id/bookDetailFragment"
-        android:name="com.example.mylibraryapps.ui.home.BookDetailFragment"
+        android:name="com.example.mylibraryapps.ui.book.BookDetailFragment"
         android:label="Book Detail"
         tools:layout="@layout/fragment_book_detail" />
         

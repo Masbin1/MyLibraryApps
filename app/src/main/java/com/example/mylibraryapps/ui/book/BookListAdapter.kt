@@ -14,8 +14,8 @@ class BookListAdapter(
     inner class BookViewHolder(private val binding: ListBookBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(book: Book) {
             binding.tvTitle.text = book.title
-            binding.tvAuthor.text = book.author
-            binding.ivCover.setImageResource(book.coverResId)
+            binding.tvStatus.text = book.author
+            binding.imgCover.setImageResource(book.coverResId)
 
             binding.root.setOnClickListener {
                 onItemClick(book)
