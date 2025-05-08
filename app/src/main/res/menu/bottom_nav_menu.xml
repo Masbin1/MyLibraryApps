@@ -7,7 +7,7 @@
         android:title="@string/beranda" />
 
     <item
-        android:id="@+id/navigation_dashboard"
+        android:id="@+id/navigation_list_book"
         android:icon="@drawable/open_book"
         android:title="@string/buku" />
 

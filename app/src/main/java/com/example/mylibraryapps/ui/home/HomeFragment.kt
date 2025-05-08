@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentHomeBinding
 import com.example.mylibraryapps.model.Book
+import com.example.mylibraryapps.ui.book.BookAdapter
 
 class HomeFragment : Fragment() {
 

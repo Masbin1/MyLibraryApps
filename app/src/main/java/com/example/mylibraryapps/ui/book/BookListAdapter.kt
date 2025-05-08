@@ -1,29 +1,30 @@
 package com.example.mylibraryapps.ui.book
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.mylibraryapps.databinding.ItemBookBinding
+import com.example.mylibraryapps.databinding.ListBookBinding
 import com.example.mylibraryapps.model.Book
 
-class BookAdapter(
+class BookListAdapter(
     private val books: List<Book>,
     private val onItemClick: (Book) -> Unit
-) : RecyclerView.Adapter<BookAdapter.BookViewHolder>() {
+) : RecyclerView.Adapter<BookListAdapter.BookViewHolder>() {
 
-    inner class BookViewHolder(val binding: ItemBookBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class BookViewHolder(private val binding: ListBookBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(book: Book) {
             binding.tvTitle.text = book.title
-            // isi data lainnya...
+            binding.tvAuthor.text = book.author
+            binding.ivCover.setImageResource(book.coverResId)
+
             binding.root.setOnClickListener {
-                onItemClick(book)  // Trigger callback
+                onItemClick(book)
             }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder {
-        val binding = ItemBookBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ListBookBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return BookViewHolder(binding)
     }
 
@@ -33,4 +34,3 @@ class BookAdapter(
 
     override fun getItemCount() = books.size
 }
-
