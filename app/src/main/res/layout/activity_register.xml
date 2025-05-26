@@ -40,7 +40,9 @@
             android:layout_marginBottom="12dp"
             android:background="@drawable/edit_text_background"
             android:hint="Masukan nama"
-            android:padding="12dp" />
+            android:textColor="#000000"
+            android:padding="12dp"
+            android:textColorHint="#000000"/>
 
         <!-- Kelas -->
         <Spinner
@@ -58,8 +60,10 @@
             android:layout_marginBottom="12dp"
             android:background="@drawable/edit_text_background"
             android:hint="Email"
+            android:textColor="#000000"
             android:inputType="textEmailAddress"
-            android:padding="12dp" />
+            android:padding="12dp"
+            android:textColorHint="#000000"/>
 
         <!-- Password -->
         <EditText
@@ -69,8 +73,10 @@
             android:layout_marginBottom="12dp"
             android:background="@drawable/edit_text_background"
             android:hint="Password"
+            android:textColor="#000000"
             android:inputType="textPassword"
-            android:padding="12dp" />
+            android:padding="12dp"
+            android:textColorHint="#000000"/>
 
         <!-- Konfirmasi Password -->
         <EditText
@@ -81,7 +87,9 @@
             android:background="@drawable/edit_text_background"
             android:hint="Konfirmasi Password"
             android:inputType="textPassword"
-            android:padding="12dp" />
+            android:textColor="#000000"
+            android:padding="12dp"
+            android:textColorHint="#000000"/>
 
         <!-- Tombol Buat Akun -->
         <Button

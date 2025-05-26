@@ -27,7 +27,9 @@
             android:background="@drawable/edit_text_background"
             android:hint="Email"
             android:inputType="textEmailAddress"
-            android:padding="16dp" />
+            android:padding="16dp"
+            android:textColor="#000000"
+            android:textColorHint="#000000"/>
 
         <EditText
             android:id="@+id/edtPassword"
@@ -37,7 +39,9 @@
             android:background="@drawable/edit_text_background"
             android:hint="Password"
             android:inputType="textPassword"
-            android:padding="16dp" />
+            android:padding="16dp"
+            android:textColor="#000000"
+            android:textColorHint="#000000"/>
 
         <Button
             android:id="@+id/btnLogin"
