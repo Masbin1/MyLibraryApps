@@ -11,8 +11,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -25,12 +23,17 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var btnBuatAkun: Button
     private lateinit var txtLogin: TextView
 
-    private lateinit var database: DatabaseReference
+    // Gunakan Firestore dan Auth
+    private lateinit var auth: FirebaseAuth
+    private val db = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         supportActionBar?.hide()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
+
+        // Inisialisasi Firebase Auth
+        auth = Firebase.auth
 
         edtNama = findViewById(R.id.edtNama)
         edtNis = findViewById(R.id.edtNis)
@@ -42,12 +45,10 @@ class RegisterActivity : AppCompatActivity() {
         txtLogin = findViewById(R.id.txtLogin)
 
         // Setup spinner kelas
-        val kelasList = listOf("SMP KELAS 1", "SMP KELAS 2","SMP KELAS 3",)
+        val kelasList = listOf("SMP KELAS 1", "SMP KELAS 2", "SMP KELAS 3")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, kelasList)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerKelas.adapter = adapter
-
-        database = FirebaseDatabase.getInstance().reference
 
         txtLogin.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
@@ -72,17 +73,32 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val user = User(nama, nis, email, password, kelas)
-            database.child("users").child(nis).setValue(user)
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Akun berhasil dibuat", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, LoginActivity::class.java))
-                    finish()
+            // 1. Daftarkan user ke Firebase Auth
+            auth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener { authResult ->
+                    // 2. Simpan data user ke Firestore
+                    val userId = authResult.user?.uid ?: nis
+                    val user = User(
+                        nama = nama,
+                        nis = nis,
+                        email = email,
+                        kelas = kelas
+                        // Jangan simpan password di Firestore!
+                    )
+
+                    db.collection("users").document(userId).set(user)
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Akun berhasil dibuat!", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this, LoginActivity::class.java))
+                            finish()
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(this, "Gagal menyimpan data: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
                 }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Gagal menyimpan data: ${it.message}", Toast.LENGTH_SHORT).show()
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Gagal membuat akun: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         }
     }
 }
-
