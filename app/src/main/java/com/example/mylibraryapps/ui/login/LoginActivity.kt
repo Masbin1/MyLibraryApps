@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.mylibraryapps.MainActivity
 import com.example.mylibraryapps.R
+import com.example.mylibraryapps.ui.register.RegisterActivity
 
 class LoginActivity : AppCompatActivity() {
 

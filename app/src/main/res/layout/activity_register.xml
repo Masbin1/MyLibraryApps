@@ -11,7 +11,6 @@
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
-        <!-- Judul -->
         <TextView
             android:id="@+id/title"
             android:layout_width="wrap_content"
@@ -22,8 +21,6 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
-
-        <!-- Logo -->
         <ImageView
             android:id="@+id/logo"
             android:layout_width="150dp"
@@ -32,7 +29,6 @@
             android:layout_marginBottom="24dp"
             android:src="@drawable/smpn1pegajahan" />
 
-        <!-- Nama -->
         <EditText
             android:id="@+id/edtNama"
             android:layout_width="match_parent"
@@ -42,17 +38,31 @@
             android:hint="Masukan nama"
             android:textColor="#000000"
             android:padding="12dp"
-            android:textColorHint="#000000"/>
+            android:textColorHint="#000000" />
 
-        <!-- Kelas -->
-        <Spinner
-            android:id="@+id/spinnerKelas"
+        <EditText
+            android:id="@+id/edtNis"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:background="@drawable/edit_text_background" />
+            android:background="@drawable/edit_text_background"
+            android:hint="Masukan NIS"
+            android:inputType="number"
+            android:textColor="#000000"
+            android:padding="12dp"
+            android:textColorHint="#000000" />
 
-        <!-- Email -->
+        <Spinner
+            android:id="@+id/spinnerKelas"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/edit_text_background"
+            android:padding="12dp"
+            android:textColor="#000000"
+            android:spinnerMode="dropdown"
+            android:textColorHint="#000000" />
+
         <EditText
             android:id="@+id/edtEmail"
             android:layout_width="match_parent"
@@ -63,9 +73,8 @@
             android:textColor="#000000"
             android:inputType="textEmailAddress"
             android:padding="12dp"
-            android:textColorHint="#000000"/>
+            android:textColorHint="#000000" />
 
-        <!-- Password -->
         <EditText
             android:id="@+id/edtPassword"
             android:layout_width="match_parent"
@@ -76,9 +85,8 @@
             android:textColor="#000000"
             android:inputType="textPassword"
             android:padding="12dp"
-            android:textColorHint="#000000"/>
+            android:textColorHint="#000000" />
 
-        <!-- Konfirmasi Password -->
         <EditText
             android:id="@+id/edtKonfirmasiPassword"
             android:layout_width="match_parent"
@@ -89,21 +97,18 @@
             android:inputType="textPassword"
             android:textColor="#000000"
             android:padding="12dp"
-            android:textColorHint="#000000"/>
+            android:textColorHint="#000000" />
 
-        <!-- Tombol Buat Akun -->
         <Button
             android:id="@+id/btnBuatAkun"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:background="@drawable/rounded_button"
             android:backgroundTint="#2C2173"
             android:padding="12dp"
             android:text="BUAT AKUN"
             android:textColor="#FFFFFF" />
 
-        <!-- Sudah punya akun -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
