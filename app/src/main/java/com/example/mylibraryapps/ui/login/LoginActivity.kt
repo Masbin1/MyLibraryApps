@@ -10,6 +10,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.mylibraryapps.MainActivity
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.ui.register.RegisterActivity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 
 class LoginActivity : AppCompatActivity() {
 
@@ -18,10 +22,17 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var btnLogin: Button
     private lateinit var txtDaftar: TextView
 
+    // Firebase instances
+    private lateinit var auth: FirebaseAuth
+    private val db = FirebaseFirestore.getInstance()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         supportActionBar?.hide()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
+        // Initialize Firebase Auth
+        auth = Firebase.auth
 
         // Binding semua komponen
         edtEmail = findViewById(R.id.edtEmail)
@@ -42,23 +53,70 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun loginAkun() {
-        val email = edtEmail.text.toString()
-        val password = edtPassword.text.toString()
+        val email = edtEmail.text.toString().trim()
+        val password = edtPassword.text.toString().trim()
 
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Email dan Password harus diisi!", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Simulasi login sukses
-        Toast.makeText(this, "Login berhasil!", Toast.LENGTH_SHORT).show()
-        // Pindah ke MainActivity setelah login berhasil
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
+        // Authenticate with Firebase Auth
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Login success, check if email is verified
+                    val user = auth.currentUser
+                    if (user != null) {
+                        if (user.isEmailVerified) {
+                            // Email verified, get user data from Firestore
+                            getUserDataFromFirestore(user.uid)
+                        } else {
+                            Toast.makeText(
+                                this,
+                                "Silakan verifikasi email terlebih dahulu!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            // Optionally resend verification email
+                            // user.sendEmailVerification()
+                        }
+                    }
+                } else {
+                    // Login failed
+                    Toast.makeText(
+                        this,
+                        "Login gagal: ${task.exception?.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+    }
 
-        // Menutup LoginActivity agar tidak bisa kembali
-//        finish()
-        // TODO: Setelah login sukses, pindah ke dashboard
+    private fun getUserDataFromFirestore(userId: String) {
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    // User data found, proceed to main activity
+                    Toast.makeText(this, "Login berhasil!", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
+                    finish() // Close login activity
+                } else {
+                    // User data not found in Firestore (shouldn't happen if registration was complete)
+                    Toast.makeText(
+                        this,
+                        "Data pengguna tidak ditemukan",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    auth.signOut() // Optional: sign out since data is incomplete
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(
+                    this,
+                    "Gagal mengambil data pengguna: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
     }
 }
-

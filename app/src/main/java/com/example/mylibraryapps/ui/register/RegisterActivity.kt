@@ -76,24 +76,21 @@ class RegisterActivity : AppCompatActivity() {
             // 1. Daftarkan user ke Firebase Auth
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener { authResult ->
-                    // 2. Simpan data user ke Firestore
+                    // Kirim email verifikasi
+                    authResult.user?.sendEmailVerification()
+                        ?.addOnSuccessListener {
+                            Toast.makeText(this, "Email verifikasi dikirim!", Toast.LENGTH_SHORT).show()
+                        }
+
+                    // Simpan data user ke Firestore
                     val userId = authResult.user?.uid ?: nis
-                    val user = User(
-                        nama = nama,
-                        nis = nis,
-                        email = email,
-                        kelas = kelas
-                        // Jangan simpan password di Firestore!
-                    )
+                    val user = User(nama, nis, email, kelas) // Tanpa password!
 
                     db.collection("users").document(userId).set(user)
                         .addOnSuccessListener {
                             Toast.makeText(this, "Akun berhasil dibuat!", Toast.LENGTH_SHORT).show()
                             startActivity(Intent(this, LoginActivity::class.java))
                             finish()
-                        }
-                        .addOnFailureListener { e ->
-                            Toast.makeText(this, "Gagal menyimpan data: ${e.message}", Toast.LENGTH_SHORT).show()
                         }
                 }
                 .addOnFailureListener { e ->
