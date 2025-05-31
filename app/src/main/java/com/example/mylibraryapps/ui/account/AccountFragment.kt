@@ -84,15 +84,16 @@ class AccountFragment : Fragment() {
             .setTitle("Keluar Akun")
             .setMessage("Apakah Anda yakin ingin keluar?")
             .setPositiveButton("Ya") { _, _ ->
+                // Sign out dari Firebase
                 auth.signOut()
-                // Navigate to LoginActivity using Intent
+
+                // Clear semua activity dan kembali ke LoginActivity
                 val intent = Intent(requireContext(), LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
                 requireActivity().finish()
             }
             .setNegativeButton("Tidak", null)
-            .create()
             .show()
     }
 

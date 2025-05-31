@@ -27,13 +27,20 @@ class LoginActivity : AppCompatActivity() {
     private val db = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        supportActionBar?.hide()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
 
-        // Initialize Firebase Auth
         auth = Firebase.auth
 
+        // Cek apakah user sudah login
+        auth.currentUser?.let {
+            // User sudah login, langsung ke MainActivity
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
+        }
+        setContentView(R.layout.activity_login)
+        supportActionBar?.hide()
+        super.onCreate(savedInstanceState)
         // Binding semua komponen
         edtEmail = findViewById(R.id.edtEmail)
         edtPassword = findViewById(R.id.edtPassword)
