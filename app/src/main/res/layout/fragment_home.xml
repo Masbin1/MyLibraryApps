@@ -13,7 +13,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#2E2263"
+        android:background="@color/purple_primary"
         android:orientation="horizontal"
         android:padding="16dp">
 
@@ -93,8 +93,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="6dp"
                 android:background="@drawable/bg_button_filter"
-                android:text="Semua"
-                android:textColor="#2E2263" />
+                android:text="Semua"/>
 
             <Button
                 android:id="@+id/btnSastra"
@@ -104,7 +103,7 @@
                 android:layout_marginHorizontal="6dp"
                 android:background="@drawable/bg_button_filter"
                 android:text="Sastra"
-                android:textColor="#2E2263" />
+                android:textColor="@color/purple_primary" />
 
             <Button
                 android:id="@+id/btnSejarah"
@@ -114,7 +113,7 @@
                 android:layout_marginHorizontal="6dp"
                 android:background="@drawable/bg_button_filter"
                 android:text="Sejarah"
-                android:textColor="#2E2263" />
+                android:textColor="@color/purple_primary" />
 
             <Button
                 android:id="@+id/btnFiksi"

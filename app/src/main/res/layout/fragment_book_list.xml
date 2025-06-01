@@ -15,7 +15,7 @@
             android:id="@+id/headerTitle"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:background="#2C205C"
+            android:background="@color/purple_primary"
             android:gravity="center_vertical"
             android:paddingStart="16dp"
             android:text="Buku"
