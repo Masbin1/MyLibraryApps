@@ -127,6 +127,14 @@
                 android:textColor="#2E2263" />
         </LinearLayout>
 
+        <!-- Progress Bar for loading -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+            
         <!-- RecyclerView Book Grid -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvBooks"

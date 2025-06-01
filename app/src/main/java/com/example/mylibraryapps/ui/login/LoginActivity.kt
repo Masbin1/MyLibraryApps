@@ -28,7 +28,6 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         auth = Firebase.auth
 
         // Cek apakah user sudah login
@@ -40,7 +39,6 @@ class LoginActivity : AppCompatActivity() {
         }
         setContentView(R.layout.activity_login)
         supportActionBar?.hide()
-        super.onCreate(savedInstanceState)
         // Binding semua komponen
         edtEmail = findViewById(R.id.edtEmail)
         edtPassword = findViewById(R.id.edtPassword)

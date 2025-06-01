@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
 import com.example.mylibraryapps.databinding.FragmentBookDetailBinding
 import com.example.mylibraryapps.model.Book
 
@@ -12,7 +13,6 @@ class BookDetailFragment : Fragment() {
 
     private var _binding: FragmentBookDetailBinding? = null
     private val binding get() = _binding!!
-
     private lateinit var book: Book
 
     override fun onCreateView(
@@ -27,22 +27,30 @@ class BookDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Mendapatkan data buku yang dikirim
         arguments?.let {
             book = it.getParcelable("book") ?: return@let
 
-            // Set data ke view sesuai XML layout
             binding.tvBookTitle.text = book.title
-            binding.ivCover.setImageResource(book.coverResId) // Asumsikan Book memiliki properti coverResId
+            binding.tvAuthor.text = book.author
+            binding.tvPublisher.text = book.publisher
+            binding.tvPurchaseDate.text = book.purchaseDate
+            binding.tvSpecifications.text = book.specifications
+            binding.tvMaterial.text = book.material
+            binding.tvQuantity.text = book.quantity.toString()
+            binding.tvGenre.text = book.genre
 
-            // Set listener untuk tombol kembali
+            if (book.coverUrl.isNotEmpty()) {
+                Glide.with(this)
+                    .load(book.coverUrl)
+                    .into(binding.ivCover)
+            }
+
             binding.btnBack.setOnClickListener {
                 requireActivity().onBackPressed()
             }
 
-            // Set listener untuk tombol pinjam
             binding.btnPinjam.setOnClickListener {
-                // Handle peminjaman buku di sini
+                // Handle book borrowing
             }
         }
     }
@@ -50,15 +58,5 @@ class BookDetailFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    companion object {
-        fun newInstance(book: Book): BookDetailFragment {
-            return BookDetailFragment().apply {
-                arguments = Bundle().apply {
-                    putParcelable("book", book)
-                }
-            }
-        }
     }
 }

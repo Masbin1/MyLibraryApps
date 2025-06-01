@@ -4,21 +4,36 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.ItemBookBinding
 import com.example.mylibraryapps.model.Book
 
 class BookAdapter(
-    private val books: List<Book>,
+    private var books: List<Book>,
     private val onItemClick: (Book) -> Unit
 ) : RecyclerView.Adapter<BookAdapter.BookViewHolder>() {
 
-    inner class BookViewHolder(val binding: ItemBookBinding) : RecyclerView.ViewHolder(binding.root) {
+    fun updateBooks(newBooks: List<Book>) {
+        books = newBooks
+        notifyDataSetChanged()
+    }
+
+    inner class BookViewHolder(private val binding: ItemBookBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(book: Book) {
             binding.tvTitle.text = book.title
-            // isi data lainnya...
-            binding.root.setOnClickListener {
-                onItemClick(book)  // Trigger callback
+
+            // Load image using Glide
+            if (book.coverUrl.isNotEmpty()) {
+                Glide.with(binding.root.context)
+                    .load(book.coverUrl)
+                    .placeholder(R.drawable.ic_book_dummy)
+                    .into(binding.ivCover)
+            } else {
+                binding.ivCover.setImageResource(R.drawable.ic_book_dummy)
             }
+
+            binding.root.setOnClickListener { onItemClick(book) }
         }
     }
 

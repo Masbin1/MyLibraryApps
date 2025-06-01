@@ -10,16 +10,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentBookListBinding
 import com.example.mylibraryapps.model.Book
-import com.example.mylibraryapps.ui.book.BookDetailFragment
-import com.example.mylibraryapps.ui.book.BookListAdapter
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class BookListFragment : Fragment() {
 
     private var _binding: FragmentBookListBinding? = null
     private val binding get() = _binding!!
-
     private lateinit var bookListAdapter: BookListAdapter
-    private lateinit var books: List<Book>
+    private val db: FirebaseFirestore = Firebase.firestore
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -31,11 +31,8 @@ class BookListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Inisialisasi data dummy
-        books = getDummyBooks()
-
-        // Set adapter dan layout manager
-        bookListAdapter = BookListAdapter(books) { selectedBook ->
+        // Initialize adapter with empty list
+        bookListAdapter = BookListAdapter(emptyList()) { selectedBook ->
             val bundle = Bundle().apply {
                 putParcelable("book", selectedBook)
             }
@@ -46,30 +43,35 @@ class BookListFragment : Fragment() {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = bookListAdapter
         }
+
+        // Load books from Firestore
+        loadBooksFromFirestore()
     }
 
-    private fun getDummyBooks(): List<Book> {
-        return listOf(
-            Book(
-                title = "Laskar Pelangi",
-                author = "Andrea Hirata",
-                year = "2005",
-                publisher = "Bentang Pustaka",
-                type = "Novel",
-                description = "Kisah anak-anak sekolah di Belitung.",
-                coverResId = R.drawable.ic_dashboard_black_24dp
-            ),
-            Book(
-                title = "Negeri 5 Menara",
-                author = "Ahmad Fuadi",
-                year = "2009",
-                publisher = "Gramedia Pustaka Utama",
-                type = "Novel",
-                description = "Perjuangan 6 santri meraih impian.",
-                coverResId = R.drawable.ic_dashboard_black_24dp
-            )
-            // Tambahkan buku lain jika perlu
-        )
+    private fun loadBooksFromFirestore() {
+        binding.progressBar.visibility = View.VISIBLE
+
+        db.collection("books")
+            .get()
+            .addOnSuccessListener { result ->
+                val books = mutableListOf<Book>()
+                for (document in result) {
+                    val book = document.toObject(Book::class.java).copy(id = document.id)
+                    books.add(book)
+                }
+                bookListAdapter = BookListAdapter(books) { selectedBook ->
+                    val bundle = Bundle().apply {
+                        putParcelable("book", selectedBook)
+                    }
+                    findNavController().navigate(R.id.bookDetailFragment, bundle)
+                }
+                binding.recyclerView.adapter = bookListAdapter
+                binding.progressBar.visibility = View.GONE
+            }
+            .addOnFailureListener { exception ->
+                // Handle error
+                binding.progressBar.visibility = View.GONE
+            }
     }
 
     override fun onDestroyView() {

@@ -108,35 +108,11 @@
                         android:textColor="#666666" />
 
                     <TextView
-                        android:id="@+id/tvBookAuthor"
+                        android:id="@+id/tvAuthor"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Nama Penulis"
-                        android:textColor="#000000"
-                        android:textAlignment="textEnd" />
-                </LinearLayout>
-
-                <!-- Year -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="12dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Tahun Terbit"
-                        android:textColor="#666666" />
-
-                    <TextView
-                        android:id="@+id/tvBookYear"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="2023"
                         android:textColor="#000000"
                         android:textAlignment="textEnd" />
                 </LinearLayout>
@@ -156,16 +132,16 @@
                         android:textColor="#666666" />
 
                     <TextView
-                        android:id="@+id/tvBookPublisher"
-                        android:layout_height="wrap_content"
+                        android:id="@+id/tvPublisher"
                         android:layout_width="0dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Nama Penerbit"
                         android:textColor="#000000"
                         android:textAlignment="textEnd" />
                 </LinearLayout>
 
-                <!-- Type -->
+                <!-- Purchase Date -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -176,11 +152,107 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Jenis Buku"
+                        android:text="Tanggal Pembelian"
                         android:textColor="#666666" />
 
                     <TextView
-                        android:id="@+id/tvBookType"
+                        android:id="@+id/tvPurchaseDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="01 Januari 2023"
+                        android:textColor="#000000"
+                        android:textAlignment="textEnd" />
+                </LinearLayout>
+
+                <!-- Specifications -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Spesifikasi"
+                        android:textColor="#666666" />
+
+                    <TextView
+                        android:id="@+id/tvSpecifications"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Hardcover, 300 halaman"
+                        android:textColor="#000000"
+                        android:textAlignment="textEnd" />
+                </LinearLayout>
+
+                <!-- Material -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Bahan"
+                        android:textColor="#666666" />
+
+                    <TextView
+                        android:id="@+id/tvMaterial"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Kertas HVS"
+                        android:textColor="#000000"
+                        android:textAlignment="textEnd" />
+                </LinearLayout>
+
+                <!-- Quantity -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Kuantitas"
+                        android:textColor="#666666" />
+
+                    <TextView
+                        android:id="@+id/tvQuantity"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="5"
+                        android:textColor="#000000"
+                        android:textAlignment="textEnd" />
+                </LinearLayout>
+
+                <!-- Genre -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Genre"
+                        android:textColor="#666666" />
+
+                    <TextView
+                        android:id="@+id/tvGenre"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -188,23 +260,6 @@
                         android:textColor="#000000"
                         android:textAlignment="textEnd" />
                 </LinearLayout>
-
-                <!-- Description -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Deskripsi"
-                    android:textColor="#666666"
-                    android:layout_marginTop="16dp" />
-
-                <TextView
-                    android:id="@+id/tvBookDescription"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Deskripsi buku akan ditampilkan di sini..."
-                    android:textColor="#000000"
-                    android:textSize="14sp" />
             </LinearLayout>
 
             <!-- Borrow Button -->
