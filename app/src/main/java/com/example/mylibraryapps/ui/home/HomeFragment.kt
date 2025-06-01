@@ -110,19 +110,21 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupFilterButtons() {
-        binding.btnSemua.setOnClickListener {
-            homeViewModel.filterBooksByGenre("Semua")
-        }
-        binding.btnSastra.setOnClickListener {
-            homeViewModel.filterBooksByGenre("Sastra")
-        }
-        binding.btnSejarah.setOnClickListener {
-            homeViewModel.filterBooksByGenre("Sejarah")
-        }
-        binding.btnFiksi.setOnClickListener {
-            homeViewModel.filterBooksByGenre("Fiksi")
+        val genres = resources.getStringArray(R.array.book_types)
+
+        for (genre in genres) {
+            val chip = com.google.android.material.chip.Chip(requireContext()).apply {
+                text = genre
+                isCheckable = true
+                isClickable = true
+                setOnClickListener {
+                    homeViewModel.filterBooksByGenre(genre)
+                }
+            }
+            binding.chipGroupGenre.addView(chip)
         }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

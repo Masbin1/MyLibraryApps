@@ -1,158 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragmentHome"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F6F6F6"
-    android:orientation="vertical"
-    android:padding="0dp"> <!-- Padding diubah menjadi 0dp -->
+    android:background="#F6F6F6">
 
-    <!-- Header - sekarang akan menempel di atas -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/purple_primary"
-        android:orientation="horizontal"
-        android:padding="16dp">
-
-        <TextView
-            android:id="@+id/tvGreeting"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="start|center_vertical"
-            android:text="Halo, Anggota"
-            android:textColor="@android:color/white"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <ImageView
-            android:id="@+id/ivNotification"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/ic_notifications_black_24dp"
-            app:tint="@android:color/white" />
-    </LinearLayout>
-
-    <!-- Konten lainnya dengan padding 16dp -->
+    <!-- Layout utama dalam ScrollView agar konten tidak terpotong -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="16dp"> <!-- Padding dipindah ke sini -->
+        android:orientation="vertical">
 
-        <!-- Search Bar -->
-
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_rounded_search"
-                android:orientation="horizontal"
-                android:paddingStart="12dp">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_gravity="center_vertical"
-                    android:src="@drawable/ic_search"
-                    app:tint="#000000" />
-
-                <EditText
-                    android:id="@+id/etSearch"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/transparent"
-                    android:hint="Cari buku..."
-                    android:inputType="text"
-                    android:paddingStart="8dp"
-                    android:textColorHint="#000000" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- Filter Buttons -->
+        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:background="@color/purple_primary"
+            android:orientation="horizontal"
+            android:padding="16dp">
 
-            <Button
-                android:id="@+id/btnSemua"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/tvGreeting"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="6dp"
-                android:background="@drawable/bg_button_filter"
-                android:text="Semua"/>
+                android:layout_weight="1"
+                android:gravity="start|center_vertical"
+                android:text="Halo, Anggota"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnSastra"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="6dp"
-                android:background="@drawable/bg_button_filter"
-                android:text="Sastra"
-                android:textColor="@color/purple_primary" />
-
-            <Button
-                android:id="@+id/btnSejarah"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="6dp"
-                android:background="@drawable/bg_button_filter"
-                android:text="Sejarah"
-                android:textColor="@color/purple_primary" />
-
-            <Button
-                android:id="@+id/btnFiksi"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="6dp"
-                android:background="@drawable/bg_button_filter"
-                android:text="Fiksi"
-                android:textColor="#FFFFFF" />
+            <ImageView
+                android:id="@+id/ivNotification"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/ic_notifications_black_24dp"
+                app:tint="@android:color/white" />
         </LinearLayout>
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabAddBook"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
-            android:visibility="gone"
-            android:src="@drawable/ic_add"
-            app:backgroundTint="@color/purple_primary"
-            app:tint="@color/white"/>
-
-        <!-- Progress Bar for loading -->
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone" />
-            
-        <!-- RecyclerView Book Grid -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvBooks"
+        <!-- Konten scrollable -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="12dp"
             android:layout_weight="1"
-            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-            app:spanCount="2" />
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Search Bar -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_rounded_search"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_search"
+                        app:tint="#000000" />
+
+                    <EditText
+                        android:id="@+id/etSearch"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@android:color/transparent"
+                        android:hint="Cari buku..."
+                        android:inputType="text"
+                        android:paddingStart="8dp"
+                        android:textColorHint="#000000" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupGenre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                app:singleSelection="true"
+                app:chipSpacing="8dp" />
+
+            <!-- Progress Bar -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+            <!-- RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvBooks"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="12dp"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                app:spanCount="2" />
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+
+    <!-- Floating Action Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddBook"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:visibility="gone"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/purple_primary"
+        app:tint="@color/white"/>
+</FrameLayout>
