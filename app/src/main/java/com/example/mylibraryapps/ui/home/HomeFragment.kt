@@ -1,5 +1,6 @@
 package com.example.mylibraryapps.ui.home
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentHomeBinding
 import com.example.mylibraryapps.ui.book.BookAdapter
+import com.google.firebase.auth.FirebaseAuth
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
@@ -29,12 +31,18 @@ class HomeFragment : Fragment() {
         return binding.root
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerView()
         setupObservers()
         setupFilterButtons()
+        // Dapatkan user ID dari Firebase Auth
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            homeViewModel.loadUserData(currentUser.uid)
+        }
     }
 
     private fun setupRecyclerView() {
@@ -54,22 +62,14 @@ class HomeFragment : Fragment() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun setupObservers() {
         homeViewModel.books.observe(viewLifecycleOwner) { books ->
-            Log.d("HomeFragment", "Received ${books?.size ?: 0} books")
-            books?.let {
-                bookAdapter.updateBooks(it)
-            }
-        }
-
-        homeViewModel.books.observe(viewLifecycleOwner) { books ->
             books?.let {
                 bookAdapter.updateBooks(it)
 
             }
         }
-
-
         homeViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             binding.progressBar.visibility = if (isLoading == true) View.VISIBLE else View.GONE
         }
@@ -85,6 +85,11 @@ class HomeFragment : Fragment() {
                 homeViewModel.clearErrorMessage()
             }
         }
+
+        homeViewModel.userName.observe(viewLifecycleOwner) { name ->
+            binding.tvGreeting.text = "Halo, $name"
+        }
+
     }
 
     private fun setupFilterButtons() {

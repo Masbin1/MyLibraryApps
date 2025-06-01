@@ -22,6 +22,25 @@ class HomeViewModel : ViewModel() {
         loadBooks()
     }
 
+    private val _userName = MutableLiveData<String>()
+    val userName: LiveData<String> = _userName
+
+    fun loadUserData(userId: String) {
+        db.collection("users").document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    _userName.value = document.getString("nama") ?: "Anggota"
+                } else {
+                    _userName.value = "Anggota"
+                }
+            }
+            .addOnFailureListener {
+                _userName.value = "Anggota"
+                Log.e("HomeVM", "Error loading user data", it)
+            }
+    }
+
     fun loadBooks() {
         _isLoading.value = true
         _errorMessage.value = null
