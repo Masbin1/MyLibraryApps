@@ -33,7 +33,7 @@ class BookDetailFragment : Fragment() {
             binding.tvBookTitle.text = book.title
             binding.tvAuthor.text = book.author
             binding.tvPublisher.text = book.publisher
-            binding.tvPurchaseDate.text = book.purchaseDate
+            binding.tvPurchaseDate.text = book.purchaseDate.toString()
             binding.tvSpecifications.text = book.specifications
             binding.tvMaterial.text = book.material
             binding.tvQuantity.text = book.quantity.toString()

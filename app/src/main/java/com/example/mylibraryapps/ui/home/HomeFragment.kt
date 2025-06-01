@@ -1,22 +1,17 @@
 package com.example.mylibraryapps.ui.home
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentHomeBinding
-import com.example.mylibraryapps.model.Book
 import com.example.mylibraryapps.ui.book.BookAdapter
-import com.google.android.material.snackbar.BaseTransientBottomBar
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.ktx.Firebase
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
@@ -44,30 +39,49 @@ class HomeFragment : Fragment() {
 
     private fun setupRecyclerView() {
         bookAdapter = BookAdapter(emptyList()) { selectedBook ->
-            val bundle = Bundle().apply {
-                putParcelable("book", selectedBook)
+            selectedBook?.let {
+                val bundle = Bundle().apply {
+                    putParcelable("book", it)
+                }
+                findNavController().navigate(R.id.bookDetailFragment, bundle)
             }
-            findNavController().navigate(R.id.bookDetailFragment, bundle)
         }
 
         binding.rvBooks.apply {
             layoutManager = GridLayoutManager(requireContext(), 2)
             adapter = bookAdapter
+            setHasFixedSize(true)
         }
     }
 
     private fun setupObservers() {
         homeViewModel.books.observe(viewLifecycleOwner) { books ->
-            bookAdapter.updateBooks(books)
+            Log.d("HomeFragment", "Received ${books?.size ?: 0} books")
+            books?.let {
+                bookAdapter.updateBooks(it)
+            }
         }
 
+        homeViewModel.books.observe(viewLifecycleOwner) { books ->
+            books?.let {
+                bookAdapter.updateBooks(it)
+
+            }
+        }
+
+
         homeViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            binding.progressBar.visibility = if (isLoading == true) View.VISIBLE else View.GONE
         }
 
         homeViewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
             errorMessage?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                // Using Snackbar instead of Toast for better UX
+                com.google.android.material.snackbar.Snackbar.make(
+                    binding.root,
+                    it,
+                    com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+                ).show()
                 homeViewModel.clearErrorMessage()
             }
         }
