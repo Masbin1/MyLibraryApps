@@ -5,12 +5,26 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/navigation_home">
 
+    <!-- Fragment Home -->
     <fragment
         android:id="@+id/navigation_home"
         android:name="com.example.mylibraryapps.ui.home.HomeFragment"
         android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home">
+        <!-- Tambahkan action untuk navigasi ke AddBookFragment -->
+        <action
+            android:id="@+id/action_homeFragment_to_addBookFragment"
+            app:destination="@id/addBookFragment" />
+    </fragment>
 
+    <!-- Tambahkan AddBookFragment -->
+    <fragment
+        android:id="@+id/addBookFragment"
+        android:name="com.example.mylibraryapps.ui.home.AddBookFragment"
+        android:label="Tambah Buku"
+        tools:layout="@layout/fragment_add_book" />
+
+    <!-- Fragment lainnya yang sudah ada -->
     <fragment
         android:id="@+id/navigation_list_book"
         android:name="com.example.mylibraryapps.ui.book.BookListFragment"
@@ -38,12 +52,11 @@
         android:name="com.example.mylibraryapps.ui.book.BookDetailFragment"
         android:label="Book Detail"
         tools:layout="@layout/fragment_book_detail" />
-        
+
     <fragment
         android:id="@+id/accountSettingsFragment"
         android:name="com.example.mylibraryapps.ui.account.AccountSettingsFragment"
         android:label="Account Settings"
         tools:layout="@layout/fragment_account_settings" />
-
 
 </navigation>

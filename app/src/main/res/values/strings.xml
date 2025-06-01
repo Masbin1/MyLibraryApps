@@ -6,4 +6,13 @@
     <string name="akun">Akun</string>
     <string name="buku">Buku</string>
     <string name="beranda">Beranda</string>
+    <string name="tambah_buku_admin">Tambah Buku admin</string>
+    <string name="judul_buku">Judul Buku</string>
+    <string name="penulis">Penulis</string>
+    <string name="tahun_terbit">Tahun Terbit</string>
+    <string name="penerbit">Penerbit</string>
+    <string name="jenis_buku">Jenis Buku</string>
+    <string name="tambahkan_deskripsi">Tambahkan Deskripsi</string>
+    <string name="tambah_buku">Tambah Buku</string>
+    <string name="back">Kembali</string>
 </resources>

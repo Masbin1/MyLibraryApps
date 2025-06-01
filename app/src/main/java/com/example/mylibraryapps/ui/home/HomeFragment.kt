@@ -38,10 +38,27 @@ class HomeFragment : Fragment() {
         setupRecyclerView()
         setupObservers()
         setupFilterButtons()
+        setupAddBookButton()
         // Dapatkan user ID dari Firebase Auth
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
             homeViewModel.loadUserData(currentUser.uid)
+        }
+    }
+
+    // Tambahkan fungsi ini
+    private fun setupAddBookButton() {
+        // Cek apakah user admin (sesuaikan dengan logika aplikasi Anda)
+        val isAdmin = true // Ganti dengan logika pengecekan admin yang sesuai
+
+        if (isAdmin) {
+            binding.fabAddBook.visibility = View.VISIBLE
+            binding.fabAddBook.setOnClickListener {
+                // Gunakan ID yang sesuai dengan nav_graph.xml
+                findNavController().navigate(R.id.action_homeFragment_to_addBookFragment)
+            }
+        } else {
+            binding.fabAddBook.visibility = View.GONE
         }
     }
 

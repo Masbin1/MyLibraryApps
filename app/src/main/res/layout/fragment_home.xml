@@ -123,8 +123,19 @@
                 android:layout_marginHorizontal="6dp"
                 android:background="@drawable/bg_button_filter"
                 android:text="Fiksi"
-                android:textColor="#2E2263" />
+                android:textColor="#FFFFFF" />
         </LinearLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddBook"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp"
+            android:visibility="gone"
+            android:src="@drawable/ic_add"
+            app:backgroundTint="@color/purple_primary"
+            app:tint="@color/white"/>
 
         <!-- Progress Bar for loading -->
         <ProgressBar
