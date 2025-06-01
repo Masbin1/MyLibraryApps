@@ -113,7 +113,7 @@ class HomeFragment : Fragment() {
         val genres = resources.getStringArray(R.array.book_types)
 
         for (genre in genres) {
-            val chip = com.google.android.material.chip.Chip(requireContext()).apply {
+            val chip = com.google.android.material.chip.Chip(requireContext(), null, R.style.CustomChipStyle).apply {
                 text = genre
                 isCheckable = true
                 isClickable = true
@@ -122,7 +122,9 @@ class HomeFragment : Fragment() {
                 }
             }
             binding.chipGroupGenre.addView(chip)
+
         }
+
     }
 
 
