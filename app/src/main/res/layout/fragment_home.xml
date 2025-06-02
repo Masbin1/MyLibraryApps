@@ -114,14 +114,16 @@
     </LinearLayout>
 
     <!-- Floating Action Button -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabAddBook"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:visibility="gone"
-        android:src="@drawable/ic_add"
+        android:text="Tambah Buku"
+        android:textColor="@android:color/white"
+        android:icon="@drawable/ic_add"
         app:backgroundTint="@color/purple_primary"
-        app:tint="@color/white"/>
+        app:tint="@android:color/white"/>
+
 </FrameLayout>
