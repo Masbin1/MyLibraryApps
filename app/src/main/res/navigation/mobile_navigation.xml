@@ -26,8 +26,8 @@
 
     <!-- Fragment lainnya yang sudah ada -->
     <fragment
-        android:id="@+id/navigation_list_book"
-        android:name="com.example.mylibraryapps.ui.book.BookListFragment"
+        android:id="@+id/navigation_list_transaction"
+        android:name="com.example.mylibraryapps.ui.transaction.TransactionListFragment"
         android:label="@string/title_dashboard"
         tools:layout="@layout/fragment_dashboard" />
 

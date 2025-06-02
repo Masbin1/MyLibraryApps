@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
         val appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.navigation_home,
-                R.id.navigation_list_book,
+                R.id.navigation_list_transaction,
                 R.id.navigation_account
             )
         )
@@ -63,15 +63,15 @@ class MainActivity : AppCompatActivity() {
                     }
                     true
                 }
-                R.id.navigation_list_book -> {
+                R.id.navigation_list_transaction -> {
                     when (navController.currentDestination?.id) {
                         R.id.bookDetailFragment -> {
-                            navController.popBackStack(R.id.navigation_list_book, false)
+                            navController.popBackStack(R.id.navigation_list_transaction, false)
                             true
                         }
-                        R.id.navigation_list_book -> true
+                        R.id.navigation_list_transaction -> true
                         else -> {
-                            navController.navigate(R.id.navigation_list_book)
+                            navController.navigate(R.id.navigation_list_transaction)
                             true
                         }
                     }
