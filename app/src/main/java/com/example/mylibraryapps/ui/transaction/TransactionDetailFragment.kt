@@ -96,28 +96,69 @@ class TransactionDetailFragment : Fragment() {
         binding.tvPublisher.text = transaction.publisher.takeIf { !it.isNullOrEmpty() } ?: "Penerbit Tidak Tersedia"
     }
 
+    // Add this in your setupAdminDependentViews function
     private fun setupAdminDependentViews() {
         if (!adminCheckCompleted) return
 
-        // Only setup views that depend on admin status
+        // Tombol untuk ADMIN
         if (adminStatus) {
             when (transaction.status) {
                 "menunggu konfirmasi pinjam" -> {
                     binding.btnConfirm.visibility = View.VISIBLE
                     binding.btnConfirm.text = "Konfirmasi Peminjaman"
                     binding.btnConfirm.setOnClickListener { confirmBorrow() }
+                    binding.btnReturnRequest.visibility = View.GONE
                 }
-                "menunggu konfirmasi pengembalian" -> {
+                "sedang dipinjam", "menunggu konfirmasi pengembalian" -> {
                     binding.btnConfirm.visibility = View.VISIBLE
-                    binding.btnConfirm.text = "Konfirmasi Pengembalian"
-                    binding.btnConfirm.setOnClickListener { confirmReturn() }
+                    binding.btnConfirm.text = if (transaction.status == "sedang dipinjam")
+                        "Ajukan Pengembalian (Admin)" else "Konfirmasi Pengembalian"
+                    binding.btnConfirm.setOnClickListener {
+                        if (transaction.status == "sedang dipinjam") requestReturn()
+                        else confirmReturn()
+                    }
+                    binding.btnReturnRequest.visibility = View.GONE
                 }
                 else -> {
                     binding.btnConfirm.visibility = View.GONE
+                    binding.btnReturnRequest.visibility = View.GONE
                 }
             }
-        } else {
+        }
+        // Tombol untuk USER BIASA
+        else {
             binding.btnConfirm.visibility = View.GONE
+            when (transaction.status) {
+                "sedang dipinjam" -> {
+                    binding.btnReturnRequest.visibility = View.VISIBLE
+                    binding.btnReturnRequest.text = "Ajukan Pengembalian"
+                    binding.btnReturnRequest.setOnClickListener { requestReturn() }
+                }
+                else -> {
+                    binding.btnReturnRequest.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    // Add this new function to handle return requests
+    private fun requestReturn() {
+        if (transaction.id.isEmpty()) {
+            showToast("ID transaksi tidak valid")
+            return
+        }
+
+        uiScope.launch {
+            try {
+                db.collection("transactions").document(transaction.id)
+                    .update("status", "menunggu konfirmasi pengembalian")
+                    .await()
+
+                showToast("Pengembalian berhasil diajukan. Menunggu konfirmasi admin.")
+                requireActivity().onBackPressed()
+            } catch (e: Exception) {
+                showToast("Gagal mengajukan pengembalian: ${e.message}")
+            }
         }
     }
 

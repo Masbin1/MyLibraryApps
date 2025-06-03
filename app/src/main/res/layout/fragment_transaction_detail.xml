@@ -365,13 +365,13 @@
                 </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
+
         <!-- Fixed Button at Bottom -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnConfirm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:layout_marginTop="8dp"
             android:text="Konfirmasi"
             android:textAllCaps="false"
             android:textSize="16sp"
@@ -382,5 +382,21 @@
             app:iconTint="@android:color/white"
             style="@style/Widget.MaterialComponents.Button"
             app:backgroundTint="@color/purple_primary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReturnRequest"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="Ajukan Pengembalian"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            app:backgroundTint="@color/purple_primary"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/ic_check"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
+            app:iconTint="@android:color/white" />
     </LinearLayout>
 </ScrollView>
