@@ -9,6 +9,9 @@
         <item>Semua</item>
         <item>Sastra</item>
         <item>Sejarah</item>
-        <item>Fiksi</item>
+        <item>Agama</item>
+        <item>Sains</item>
+        <item>Cerita</item>
+        <item>Budaya</item>
     </string-array>
 </resources>

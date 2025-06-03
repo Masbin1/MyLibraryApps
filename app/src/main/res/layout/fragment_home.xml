@@ -82,15 +82,19 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroupGenre"
+            <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:chipSpacing="8dp"
-                app:chipSpacingHorizontal="12dp"
-                app:chipSpacingVertical="8dp"
-                android:padding="8dp"
-                />
+                android:scrollbars="none"
+                android:padding="8dp">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupGenre"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleLine="true"
+                    app:chipSpacing="12dp" />
+            </HorizontalScrollView>
 
 
             <!-- Progress Bar -->
