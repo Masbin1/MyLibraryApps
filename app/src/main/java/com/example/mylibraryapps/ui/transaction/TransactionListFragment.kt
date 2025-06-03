@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentTransactionListBinding
@@ -26,25 +27,16 @@ class TransactionListFragment : Fragment() {
     private val auth = FirebaseAuth.getInstance()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentTransactionListBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        try {
-            setupToolbar()
-            setupRecyclerView()
-            loadInitialData()
-        } catch (e: Exception) {
-            Log.e("TransactionList", "Initialization error", e)
-            showError("Gagal memulai aplikasi")
-        }
+        setupToolbar()
+        setupRecyclerView()
+        loadInitialData()
     }
 
     private fun setupToolbar() {
@@ -53,40 +45,30 @@ class TransactionListFragment : Fragment() {
         }
 
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
-            try {
-                when (menuItem.itemId) {
-                    R.id.action_filter_all -> {
-                        loadTransactions()
-                        true
-                    }
-                    R.id.action_filter_borrow -> {
-                        loadTransactions("sedang dipinjam")
-                        true
-                    }
-                    R.id.action_filter_return -> {
-                        loadTransactions("sudah dikembalikan")
-                        true
-                    }
-                    else -> false
+            when (menuItem.itemId) {
+                R.id.action_filter_all -> {
+                    loadTransactions()
+                    true
                 }
-            } catch (e: Exception) {
-                Log.e("TransactionList", "Menu error", e)
-                false
+                R.id.action_filter_borrow -> {
+                    loadTransactions("sedang dipinjam")
+                    true
+                }
+                R.id.action_filter_return -> {
+                    loadTransactions("sudah dikembalikan")
+                    true
+                }
+                else -> false
             }
         }
     }
 
     private fun setupRecyclerView() {
         adapter = TransactionAdapter { transaction ->
-            try {
-                if (transaction.id.isNotEmpty()) {
-                    navigateToDetail(transaction)
-                } else {
-                    showToast("Transaksi tidak valid")
-                }
-            } catch (e: Exception) {
-                Log.e("TransactionList", "Navigation error", e)
-                showToast("Gagal membuka detail")
+            if (transaction.id.isNotEmpty()) {
+                navigateToDetail(transaction)
+            } else {
+                showToast("Transaksi tidak valid")
             }
         }
 
@@ -100,8 +82,6 @@ class TransactionListFragment : Fragment() {
     private fun loadInitialData() {
         binding.progressBar.visibility = View.VISIBLE
         binding.tvEmpty.visibility = View.GONE
-
-        // Load without filter first
         loadTransactions()
     }
 
@@ -112,64 +92,44 @@ class TransactionListFragment : Fragment() {
             return
         }
 
-        try {
-            db.collection("transactions")
-                .whereEqualTo("userId", userId)
-                .get()
-                .addOnSuccessListener { snapshot ->
-                    handleSuccess(snapshot, statusFilter)
-                }
-                .addOnFailureListener { e ->
-                    handleError(e)
-                }
-        } catch (e: Exception) {
-            handleError(e)
-        }
+        db.collection("transactions")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                handleSuccess(snapshot, statusFilter)
+            }
+            .addOnFailureListener { e ->
+                handleError(e)
+            }
     }
 
     private fun handleSuccess(snapshot: QuerySnapshot, statusFilter: String?) {
         binding.progressBar.visibility = View.GONE
 
-        try {
-            val transactions = mutableListOf<Transaction>()
-            for (doc in snapshot.documents) {
-                try {
-                    doc.toObject(Transaction::class.java)?.let { transaction ->
-                        transactions.add(transaction.copy(id = doc.id))
-                    }
-                } catch (e: Exception) {
-                    Log.w("TransactionList", "Error parsing doc ${doc.id}", e)
-                }
+        val transactions = snapshot.documents.mapNotNull { doc ->
+            try {
+                doc.toObject(Transaction::class.java)?.copy(id = doc.id)
+            } catch (e: Exception) {
+                Log.w("TransactionList", "Error parsing doc ${doc.id}", e)
+                null
             }
-
-            // Client-side processing
-            val processedList = processTransactions(transactions, statusFilter)
-
-            if (processedList.isEmpty()) {
-                showEmptyState(statusFilter)
-            } else {
-                adapter.submitList(processedList)
-                binding.tvEmpty.visibility = View.GONE
-            }
-        } catch (e: Exception) {
-            handleError(e)
         }
-    }
 
-    private fun processTransactions(transactions: List<Transaction>, statusFilter: String?): List<Transaction> {
-        return transactions
-            .filter {
-                statusFilter?.let { filter -> it.status == filter } ?: true
-            }
-            .sortedByDescending {
-                parseDate(it.borrowDate)
-            }
+        val processedList = transactions
+            .filter { transaction -> statusFilter?.let { it == transaction.status } ?: true }
+            .sortedByDescending { parseDate(it.borrowDate) }
+
+        if (processedList.isEmpty()) {
+            showEmptyState(statusFilter)
+        } else {
+            adapter.submitList(processedList)
+            binding.tvEmpty.visibility = View.GONE
+        }
     }
 
     private fun parseDate(dateString: String): Long {
         return try {
-            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                .parse(dateString)?.time ?: 0
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateString)?.time ?: 0
         } catch (e: Exception) {
             0
         }
@@ -191,14 +151,15 @@ class TransactionListFragment : Fragment() {
     }
 
     private fun navigateToDetail(transaction: Transaction) {
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.container, TransactionDetailFragment().apply {
-                arguments = Bundle().apply {
-                    putParcelable("transaction", transaction)
-                }
-            })
-            .addToBackStack(null)
-            .commit()
+        val bundle = Bundle().apply {
+            putParcelable("transaction", transaction)
+        }
+        
+        // Navigate directly to the destination fragment
+        findNavController().navigate(
+            R.id.transactionDetailFragment,
+            bundle
+        )
     }
 
     private fun showToast(message: String) {

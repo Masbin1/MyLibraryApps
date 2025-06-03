@@ -12,6 +12,7 @@ import com.example.mylibraryapps.databinding.ItemTransactionBinding
 import com.example.mylibraryapps.model.Transaction
 import java.text.SimpleDateFormat
 import java.util.*
+
 class TransactionAdapter(
     private val onClick: (Transaction) -> Unit
 ) : ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder>(DiffCallback()) {
@@ -24,8 +25,7 @@ class TransactionAdapter(
     }
 
     override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
-        val transaction = getItem(position)
-        holder.bind(transaction)
+        holder.bind(getItem(position))
     }
 
     inner class TransactionViewHolder(
@@ -34,48 +34,37 @@ class TransactionAdapter(
 
         fun bind(transaction: Transaction) {
             try {
-                // Set text values with null checks
-                binding.tvTitle.text = transaction.title.ifEmpty { "Judul Tidak Tersedia" }
-                binding.tvAuthor.text = "Penulis: ${transaction.author.ifEmpty { "Tidak Diketahui" }}"
+                binding.tvTitle.text = transaction.title.ifBlank { "Judul Tidak Tersedia" }
+                binding.tvAuthor.text = "Penulis: ${transaction.author.ifBlank { "Tidak Diketahui" }}"
 
-                // Format dates safely
                 val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
                 val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-                val borrowDate = try {
-                    inputFormat.parse(transaction.borrowDate)?.let { dateFormat.format(it) } ?: transaction.borrowDate
-                } catch (e: Exception) {
-                    transaction.borrowDate
-                }
-
-                val returnDate = try {
-                    inputFormat.parse(transaction.returnDate)?.let { dateFormat.format(it) } ?: transaction.returnDate
-                } catch (e: Exception) {
-                    transaction.returnDate
-                }
+                val borrowDate = parseDateSafe(transaction.borrowDate, inputFormat, dateFormat)
+                val returnDate = parseDateSafe(transaction.returnDate, inputFormat, dateFormat)
 
                 binding.tvDate.text = "$borrowDate - $returnDate"
 
-                // Set status with background
-                binding.tvStatus.text = when (transaction.status) {
+                val statusText = when (transaction.status) {
                     "menunggu konfirmasi pinjam" -> "Menunggu"
                     "sedang dipinjam" -> "Dipinjam"
                     "menunggu konfirmasi pengembalian" -> "Pengembalian"
                     "sudah dikembalikan" -> "Selesai"
-                    else -> transaction.status.ifEmpty { "Unknown" }
+                    else -> transaction.status.ifBlank { "Unknown" }
                 }
 
-                val bgRes = when (transaction.status) {
+                val statusBg = when (transaction.status) {
                     "menunggu konfirmasi pinjam" -> R.drawable.bg_status_pending
                     "sedang dipinjam" -> R.drawable.bg_status_borrowed
                     "menunggu konfirmasi pengembalian" -> R.drawable.bg_status_returning
                     "sudah dikembalikan" -> R.drawable.bg_status_completed
                     else -> R.drawable.bg_status_pending
                 }
-                binding.tvStatus.setBackgroundResource(bgRes)
 
-                // Load image safely
-                if (transaction.coverUrl.isNotEmpty()) {
+                binding.tvStatus.text = statusText
+                binding.tvStatus.setBackgroundResource(statusBg)
+
+                if (transaction.coverUrl.isNotBlank()) {
                     Glide.with(binding.root.context)
                         .load(transaction.coverUrl)
                         .placeholder(R.drawable.ic_book_cover_placeholder)
@@ -91,6 +80,18 @@ class TransactionAdapter(
 
             } catch (e: Exception) {
                 Log.e("TransactionAdapter", "Error binding transaction data", e)
+            }
+        }
+
+        private fun parseDateSafe(
+            date: String,
+            inputFormat: SimpleDateFormat,
+            outputFormat: SimpleDateFormat
+        ): String {
+            return try {
+                inputFormat.parse(date)?.let { outputFormat.format(it) } ?: date
+            } catch (e: Exception) {
+                date
             }
         }
     }

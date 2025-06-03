@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.navigation_list_transaction -> {
                     when (navController.currentDestination?.id) {
-                        R.id.bookDetailFragment -> {
+                        R.id.transactionDetailFragment -> {
                             navController.popBackStack(R.id.navigation_list_transaction, false)
                             true
                         }

@@ -29,7 +29,11 @@
         android:id="@+id/navigation_list_transaction"
         android:name="com.example.mylibraryapps.ui.transaction.TransactionListFragment"
         android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        tools:layout="@layout/fragment_dashboard">
+        <action
+            android:id="@+id/action_transactionListFragment_to_transactionDetailFragment"
+            app:destination="@id/transactionDetailFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_notifications"
@@ -58,5 +62,10 @@
         android:name="com.example.mylibraryapps.ui.account.AccountSettingsFragment"
         android:label="Account Settings"
         tools:layout="@layout/fragment_account_settings" />
+
+    <fragment
+        android:id="@+id/transactionDetailFragment"
+        android:name="com.example.mylibraryapps.ui.transaction.TransactionDetailFragment"
+        tools:layout="@layout/fragment_transaction_detail" />
 
 </navigation>
