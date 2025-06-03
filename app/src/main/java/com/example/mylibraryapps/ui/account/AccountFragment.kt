@@ -61,6 +61,8 @@ class AccountFragment : Fragment() {
                         val name = document.getString("nama") ?: "Siswa"
                         val nis = document.getString("nis") ?: ""
                         val kelas = document.getString("kelas") ?: ""
+                        val isAdmin = document.getBoolean("is_admin") ?: false
+
 
                         // Display user data with modern formatting
                         binding.tvUserName.text = name

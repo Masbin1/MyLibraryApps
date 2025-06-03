@@ -5,5 +5,6 @@ data class User(
     val nama: String = "",
     val nis: String = "",
     val email: String = "",
-    val kelas: String = ""
+    val kelas: String = "",
+    val is_admin: Boolean = false,
 )
