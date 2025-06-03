@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_marginStart="8dp"
     android:layout_marginEnd="8dp"
     android:layout_marginBottom="8dp"
@@ -14,6 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:background="@android:color/white"
         android:padding="16dp">
 
         <LinearLayout
@@ -27,6 +28,7 @@
                 android:layout_height="90dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/ic_book_cover_placeholder"
+                tools:ignore="ContentDescription,ImageContrastCheck"
                 tools:src="@drawable/ic_book_cover_placeholder" />
 
             <LinearLayout
@@ -42,8 +44,9 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
                     tools:text="Judul Buku Panjang Sekali" />
 
                 <TextView
@@ -53,8 +56,8 @@
                     android:layout_marginTop="4dp"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
                     tools:text="Penulis: John Doe" />
 
                 <TextView
@@ -62,8 +65,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
-                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="12sp"
+                    android:textColor="@android:color/darker_gray"
                     tools:text="12 Jan - 19 Jan 2023" />
             </LinearLayout>
 
@@ -73,10 +76,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:background="@drawable/bg_status_pending"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
-                android:textColor="@android:color/white"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:textSize="12sp"
+                android:textColor="#006064"
                 tools:text="Pending" />
         </LinearLayout>
 
@@ -85,7 +90,7 @@
             android:layout_height="1dp"
             android:layout_marginTop="12dp"
             android:layout_marginBottom="8dp"
-            android:background="?attr/colorOutline" />
+            android:background="@android:color/darker_gray" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -96,8 +101,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Detail"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Button"
-                android:textColor="?attr/colorPrimary" />
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/purple_primary"
+                tools:ignore="HardcodedText" />
 
             <View
                 android:layout_width="0dp"
@@ -107,8 +114,9 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:importantForAccessibility="no"
                 android:src="@drawable/ic_chevron_right"
-                app:tint="?attr/colorOnSurface" />
+                app:tint="@android:color/darker_gray" />
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

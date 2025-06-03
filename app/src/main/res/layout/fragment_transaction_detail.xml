@@ -125,6 +125,46 @@
                 app:layout_constraintTop_toTopOf="@+id/labelStatus"
                 tools:text="Sedang Dipinjam" />
 
+            <TextView
+                android:id="@+id/labelGenre"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Genre:"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvStatus" />
+
+            <TextView
+                android:id="@+id/tvGenre"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/labelGenre"
+                app:layout_constraintTop_toTopOf="@+id/labelGenre"
+                tools:text="Fiksi" />
+
+            <TextView
+                android:id="@+id/labelPublisher"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Penerbit:"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvGenre" />
+
+            <TextView
+                android:id="@+id/tvPublisher"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/labelPublisher"
+                app:layout_constraintTop_toTopOf="@+id/labelPublisher"
+                tools:text="Gramedia" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 

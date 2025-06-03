@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.mylibraryapps.databinding.FragmentTransactionDetailBinding
 import com.example.mylibraryapps.model.Transaction
@@ -30,34 +31,52 @@ class TransactionDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        arguments?.let {
-            transaction = it.getParcelable("transaction") ?: return@let
-
-            binding.tvBookTitle.text = transaction.title
-            binding.tvAuthor.text = transaction.author
-            binding.tvBorrowDate.text = formatDate(transaction.borrowDate)
-            binding.tvReturnDate.text = formatDate(transaction.returnDate)
-            binding.tvStatus.text = getStatusText(transaction.status)
-
-            if (isAdmin()) {
-                when (transaction.status) {
-                    "menunggu konfirmasi pinjam" -> {
-                        binding.btnConfirm.visibility = View.VISIBLE
-                        binding.btnConfirm.text = "Konfirmasi Peminjaman"
-                        binding.btnConfirm.setOnClickListener { confirmBorrow() }
-                    }
-                    "menunggu konfirmasi pengembalian" -> {
-                        binding.btnConfirm.visibility = View.VISIBLE
-                        binding.btnConfirm.text = "Konfirmasi Pengembalian"
-                        binding.btnConfirm.setOnClickListener { confirmReturn() }
-                    }
-                    else -> {
-                        binding.btnConfirm.visibility = View.GONE
-                    }
-                }
-            } else {
-                binding.btnConfirm.visibility = View.GONE
+        arguments?.let { bundle ->
+            transaction = bundle.getParcelable("transaction") ?: run {
+                showErrorAndClose("Transaksi tidak valid")
+                return@let
             }
+
+            if (transaction.id.isEmpty()) {
+                showErrorAndClose("ID transaksi tidak valid")
+                return@let
+            }
+
+            setupViews()
+        } ?: run {
+            showErrorAndClose("Data transaksi tidak ditemukan")
+        }
+    }
+
+    private fun setupViews() {
+        binding.tvBookTitle.text = transaction.title.ifEmpty { "Judul Tidak Tersedia" }
+        binding.tvAuthor.text = transaction.author.ifEmpty { "Penulis Tidak Diketahui" }
+        binding.tvBorrowDate.text = formatDate(transaction.borrowDate)
+        binding.tvReturnDate.text = formatDate(transaction.returnDate)
+        binding.tvStatus.text = getStatusText(transaction.status)
+
+        // Additional fields if needed
+        binding.tvGenre.text = transaction.genre.takeIf { !it.isNullOrEmpty() } ?: "Genre Tidak Tersedia"
+        binding.tvPublisher.text = transaction.publisher.takeIf { !it.isNullOrEmpty() } ?: "Penerbit Tidak Tersedia"
+
+        if (isAdmin()) {
+            when (transaction.status) {
+                "menunggu konfirmasi pinjam" -> {
+                    binding.btnConfirm.visibility = View.VISIBLE
+                    binding.btnConfirm.text = "Konfirmasi Peminjaman"
+                    binding.btnConfirm.setOnClickListener { confirmBorrow() }
+                }
+                "menunggu konfirmasi pengembalian" -> {
+                    binding.btnConfirm.visibility = View.VISIBLE
+                    binding.btnConfirm.text = "Konfirmasi Pengembalian"
+                    binding.btnConfirm.setOnClickListener { confirmReturn() }
+                }
+                else -> {
+                    binding.btnConfirm.visibility = View.GONE
+                }
+            }
+        } else {
+            binding.btnConfirm.visibility = View.GONE
         }
     }
 
@@ -83,6 +102,11 @@ class TransactionDetailFragment : Fragment() {
     }
 
     private fun confirmBorrow() {
+        if (transaction.id.isEmpty()) {
+            showToast("ID transaksi tidak valid")
+            return
+        }
+
         db.collection("transactions").document(transaction.id)
             .update("status", "sedang dipinjam")
             .addOnSuccessListener {
@@ -95,20 +119,33 @@ class TransactionDetailFragment : Fragment() {
     }
 
     private fun confirmReturn() {
+        if (transaction.id.isEmpty()) {
+            showToast("ID transaksi tidak valid")
+            return
+        }
+
         db.collection("transactions").document(transaction.id)
             .update("status", "sudah dikembalikan")
             .addOnSuccessListener {
-                db.collection("books").document(transaction.bookId)
-                    .get()
-                    .addOnSuccessListener { document ->
-                        val currentQuantity = document.getLong("quantity")?.toInt() ?: 0
-                        db.collection("books").document(transaction.bookId)
-                            .update("quantity", currentQuantity + 1)
-                            .addOnSuccessListener {
-                                showToast("Pengembalian berhasil dikonfirmasi")
-                                requireActivity().onBackPressed()
-                            }
-                    }
+                if (transaction.bookId.isNotEmpty()) {
+                    db.collection("books").document(transaction.bookId)
+                        .get()
+                        .addOnSuccessListener { document ->
+                            val currentQuantity = document.getLong("quantity")?.toInt() ?: 0
+                            db.collection("books").document(transaction.bookId)
+                                .update("quantity", currentQuantity + 1)
+                                .addOnSuccessListener {
+                                    showToast("Pengembalian berhasil dikonfirmasi")
+                                    requireActivity().onBackPressed()
+                                }
+                                .addOnFailureListener { e ->
+                                    showToast("Berhasil mengkonfirmasi tapi gagal update stok: ${e.message}")
+                                }
+                        }
+                } else {
+                    showToast("Pengembalian berhasil dikonfirmasi")
+                    requireActivity().onBackPressed()
+                }
             }
             .addOnFailureListener { e ->
                 showToast("Gagal mengkonfirmasi: ${e.message}")
@@ -121,7 +158,12 @@ class TransactionDetailFragment : Fragment() {
     }
 
     private fun showToast(message: String) {
-        android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showErrorAndClose(message: String) {
+        showToast(message)
+        requireActivity().onBackPressed()
     }
 
     override fun onDestroyView() {

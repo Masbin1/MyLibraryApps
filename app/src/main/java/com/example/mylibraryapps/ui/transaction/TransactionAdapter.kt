@@ -1,5 +1,6 @@
 package com.example.mylibraryapps.ui.transaction
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -11,7 +12,6 @@ import com.example.mylibraryapps.databinding.ItemTransactionBinding
 import com.example.mylibraryapps.model.Transaction
 import java.text.SimpleDateFormat
 import java.util.*
-
 class TransactionAdapter(
     private val onClick: (Transaction) -> Unit
 ) : ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder>(DiffCallback()) {
@@ -33,39 +33,64 @@ class TransactionAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(transaction: Transaction) {
-            binding.tvTitle.text = transaction.title
-            binding.tvAuthor.text = "Penulis: ${transaction.author}"
+            try {
+                // Set text values with null checks
+                binding.tvTitle.text = transaction.title.ifEmpty { "Judul Tidak Tersedia" }
+                binding.tvAuthor.text = "Penulis: ${transaction.author.ifEmpty { "Tidak Diketahui" }}"
 
-            val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-            val borrowDate = dateFormat.format(SimpleDateFormat("yyyy-MM-dd").parse(transaction.borrowDate))
-            val returnDate = dateFormat.format(SimpleDateFormat("yyyy-MM-dd").parse(transaction.returnDate))
-            binding.tvDate.text = "$borrowDate - $returnDate"
+                // Format dates safely
+                val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+                val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-            binding.tvStatus.text = when (transaction.status) {
-                "menunggu konfirmasi pinjam" -> "Menunggu"
-                "sedang dipinjam" -> "Dipinjam"
-                "menunggu konfirmasi pengembalian" -> "Pengembalian"
-                "sudah dikembalikan" -> "Selesai"
-                else -> transaction.status
-            }
+                val borrowDate = try {
+                    inputFormat.parse(transaction.borrowDate)?.let { dateFormat.format(it) } ?: transaction.borrowDate
+                } catch (e: Exception) {
+                    transaction.borrowDate
+                }
 
-            val bgRes = when (transaction.status) {
-                "menunggu konfirmasi pinjam" -> R.drawable.bg_status_pending
-                "sedang dipinjam" -> R.drawable.bg_status_borrowed
-                "menunggu konfirmasi pengembalian" -> R.drawable.bg_status_returning
-                "sudah dikembalikan" -> R.drawable.bg_status_completed
-                else -> R.drawable.bg_status_pending
-            }
-            binding.tvStatus.setBackgroundResource(bgRes)
+                val returnDate = try {
+                    inputFormat.parse(transaction.returnDate)?.let { dateFormat.format(it) } ?: transaction.returnDate
+                } catch (e: Exception) {
+                    transaction.returnDate
+                }
 
-            if (transaction.coverUrl.isNotEmpty()) {
-                Glide.with(binding.root.context)
-                    .load(transaction.coverUrl)
-                    .into(binding.ivCover)
-            }
+                binding.tvDate.text = "$borrowDate - $returnDate"
 
-            binding.root.setOnClickListener {
-                onClick(transaction)
+                // Set status with background
+                binding.tvStatus.text = when (transaction.status) {
+                    "menunggu konfirmasi pinjam" -> "Menunggu"
+                    "sedang dipinjam" -> "Dipinjam"
+                    "menunggu konfirmasi pengembalian" -> "Pengembalian"
+                    "sudah dikembalikan" -> "Selesai"
+                    else -> transaction.status.ifEmpty { "Unknown" }
+                }
+
+                val bgRes = when (transaction.status) {
+                    "menunggu konfirmasi pinjam" -> R.drawable.bg_status_pending
+                    "sedang dipinjam" -> R.drawable.bg_status_borrowed
+                    "menunggu konfirmasi pengembalian" -> R.drawable.bg_status_returning
+                    "sudah dikembalikan" -> R.drawable.bg_status_completed
+                    else -> R.drawable.bg_status_pending
+                }
+                binding.tvStatus.setBackgroundResource(bgRes)
+
+                // Load image safely
+                if (transaction.coverUrl.isNotEmpty()) {
+                    Glide.with(binding.root.context)
+                        .load(transaction.coverUrl)
+                        .placeholder(R.drawable.ic_book_cover_placeholder)
+                        .error(R.drawable.ic_book_cover_placeholder)
+                        .into(binding.ivCover)
+                } else {
+                    binding.ivCover.setImageResource(R.drawable.ic_book_cover_placeholder)
+                }
+
+                binding.root.setOnClickListener {
+                    onClick(transaction)
+                }
+
+            } catch (e: Exception) {
+                Log.e("TransactionAdapter", "Error binding transaction data", e)
             }
         }
     }
