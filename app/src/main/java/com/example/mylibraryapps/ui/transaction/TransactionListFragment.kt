@@ -86,20 +86,41 @@ class TransactionListFragment : Fragment() {
     }
 
     private fun loadTransactions(statusFilter: String? = null) {
-        val userId = auth.currentUser?.uid
-        if (userId.isNullOrEmpty()) {
+        val userId = auth.currentUser?.uid ?: run {
             showError("User tidak terautentikasi")
             return
         }
 
-        db.collection("transactions")
-            .whereEqualTo("userId", userId)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                handleSuccess(snapshot, statusFilter)
+        // Pertama, ambil data user untuk cek status admin
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener { userDocument ->
+                val isAdmin = userDocument.getBoolean("is_admin") ?: false
+                // Buat query dasar
+                val query = if (isAdmin) {
+                    // Jika admin, ambil semua transaksi tanpa filter userId
+                    db.collection("transactions")
+                } else {
+                    // Jika bukan admin, filter berdasarkan userId
+                    db.collection("transactions")
+                        .whereEqualTo("userId", userId)
+                }
+
+                // Tambahkan filter status jika ada (kecuali untuk admin jika ingin menonaktifkan filter)
+                if (!statusFilter.isNullOrEmpty() && !isAdmin) {
+                    query.whereEqualTo("status", statusFilter)
+                }
+
+                // Eksekusi query
+                query.get()
+                    .addOnSuccessListener { snapshot ->
+                        handleSuccess(snapshot, statusFilter)
+                    }
+                    .addOnFailureListener { e ->
+                        handleError(e)
+                    }
             }
             .addOnFailureListener { e ->
-                handleError(e)
+                showError("Gagal memuat data user: ${e.message}")
             }
     }
 
