@@ -87,6 +87,7 @@ class TransactionDetailFragment : Fragment() {
     private fun setupInitialViews() {
         // Views that don't need admin status
         binding.tvBookTitle.text = transaction.title.ifEmpty { "Judul Tidak Tersedia" }
+        binding.tvUserName.text = transaction.nameUser.ifEmpty { "Judul Tidak Tersedia" }
         binding.tvAuthor.text = transaction.author.ifEmpty { "Penulis Tidak Diketahui" }
         binding.tvBorrowDate.text = formatDate(transaction.borrowDate)
         binding.tvReturnDate.text = formatDate(transaction.returnDate)

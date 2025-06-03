@@ -10,6 +10,7 @@ import com.example.mylibraryapps.databinding.FragmentBookDetailBinding
 import com.example.mylibraryapps.model.Book
 import com.example.mylibraryapps.model.Transaction
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.*
@@ -69,11 +70,55 @@ class BookDetailFragment : Fragment() {
             return
         }
 
-        if (book.quantity <= 0) {
-            showToast("Buku tidak tersedia untuk dipinjam")
-            return
-        }
+        // Ambil data user dari Firestore
+        db.collection("users").document(currentUser.uid)
+            .get()
+            .addOnSuccessListener { document ->
+                if (!document.exists()) {
+                    showToast("Data pengguna tidak ditemukan")
+                    return@addOnSuccessListener
+                }
 
+                val userData = document.data
+                val userName = userData?.get("nama") as? String ?: currentUser.displayName ?: "Pengguna"
+                val userClass = userData?.get("kelas") as? String ?: ""
+                val userNis = userData?.get("nis") as? String ?: ""
+
+                if (book.quantity <= 0) {
+                    showToast("Buku tidak tersedia untuk dipinjam")
+                    return@addOnSuccessListener
+                }
+
+                // Validasi peminjaman ganda
+                db.collection("transactions")
+                    .whereEqualTo("userId", currentUser.uid)
+                    .whereEqualTo("bookId", book.id)
+                    .whereIn("status", listOf("menunggu konfirmasi pinjam", "dipinjam"))
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        if (!documents.isEmpty) {
+                            showToast("Anda sudah meminjam buku ini dan belum mengembalikannya")
+                            return@addOnSuccessListener
+                        }
+
+                        // Proses peminjaman
+                        processBorrowTransaction(currentUser, userName, userClass, userNis)
+                    }
+                    .addOnFailureListener { e ->
+                        showToast("Gagal memeriksa riwayat peminjaman: ${e.message}")
+                    }
+            }
+            .addOnFailureListener { e ->
+                showToast("Gagal mengambil data pengguna: ${e.message}")
+            }
+    }
+
+    private fun processBorrowTransaction(
+        currentUser: FirebaseUser,
+        userName: String,
+        userClass: String,
+        userNis: String
+    ) {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val currentDate = dateFormat.format(Date())
 
@@ -88,24 +133,26 @@ class BookDetailFragment : Fragment() {
             publisher = book.publisher,
             genre = book.genre,
             coverUrl = book.coverUrl,
+            nameUser = userName,
             userId = currentUser.uid,
             borrowDate = currentDate,
             returnDate = returnDate,
             status = "menunggu konfirmasi pinjam",
-            remainingDays = 7
+            remainingDays = 7,      // Tambahkan field NIS user
         )
 
-        db.collection("transactions")
-            .add(transaction)
+        // Batch write untuk atomic operation
+        val batch = db.batch()
+
+        val transactionRef = db.collection("transactions").document()
+        batch.set(transactionRef, transaction)
+
+        val bookRef = db.collection("books").document(book.id)
+        batch.update(bookRef, "quantity", book.quantity - 1)
+
+        batch.commit()
             .addOnSuccessListener {
-                db.collection("books").document(book.id)
-                    .update("quantity", book.quantity - 1)
-                    .addOnSuccessListener {
-                        showToast("Permintaan peminjaman berhasil diajukan. Menunggu konfirmasi admin.")
-                    }
-                    .addOnFailureListener { e ->
-                        showToast("Gagal memperbarui stok buku: ${e.message}")
-                    }
+                showToast("Permintaan peminjaman berhasil diajukan. Menunggu konfirmasi admin.")
             }
             .addOnFailureListener { e ->
                 showToast("Gagal mengajukan peminjaman: ${e.message}")

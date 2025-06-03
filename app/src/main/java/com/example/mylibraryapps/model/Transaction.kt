@@ -6,6 +6,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class Transaction(
     val id: String = "",
+    val nameUser: String = "",
     val title: String = "",
     val author: String = "",
     val borrowDate: String = "",
