@@ -62,7 +62,7 @@ class RegisterActivity : AppCompatActivity() {
             val password = edtPassword.text.toString().trim()
             val konfirmasiPassword = edtKonfirmasiPassword.text.toString().trim()
             val kelas = spinnerKelas.selectedItem.toString()
-            val isAdmin = false
+            val is_admin = false
 
             if (nama.isEmpty() || nis.isEmpty() || email.isEmpty() || password.isEmpty() || konfirmasiPassword.isEmpty()) {
                 Toast.makeText(this, "Semua field wajib diisi", Toast.LENGTH_SHORT).show()
@@ -85,7 +85,7 @@ class RegisterActivity : AppCompatActivity() {
 
                     // Simpan data user ke Firestore
                     val userId = authResult.user?.uid ?: nis
-                    val user = User(nama, nis, email, kelas, isAdmin) // Tanpa password!
+                    val user = User(nama, nis, email, kelas, is_admin) // Tanpa password!
 
                     db.collection("users").document(userId).set(user)
                         .addOnSuccessListener {
