@@ -73,7 +73,8 @@ class LoginActivity : AppCompatActivity() {
                     // Login success, check if email is verified
                     val user = auth.currentUser
                     if (user != null) {
-                        if (user.isEmailVerified) {
+//                        hilangin falsenya jika kamu mau buat login yang email verify
+                        if (user.isEmailVerified == false) {
                             // Email verified, get user data from Firestore
                             getUserDataFromFirestore(user.uid)
                         } else {
