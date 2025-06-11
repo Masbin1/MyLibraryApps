@@ -55,7 +55,18 @@
         android:id="@+id/bookDetailFragment"
         android:name="com.example.mylibraryapps.ui.book.BookDetailFragment"
         android:label="Book Detail"
-        tools:layout="@layout/fragment_book_detail" />
+        tools:layout="@layout/fragment_book_detail">
+
+        <!-- Add action to navigate to EditBookFragment -->
+        <action
+            android:id="@+id/action_bookDetailFragment_to_editBookFragment"
+            app:destination="@id/editBookFragment" />
+
+        <!-- Add argument for book data -->
+        <argument
+            android:name="book"
+            app:argType="com.example.mylibraryapps.model.Book" />
+    </fragment>
 
     <fragment
         android:id="@+id/accountSettingsFragment"
@@ -67,5 +78,18 @@
         android:id="@+id/transactionDetailFragment"
         android:name="com.example.mylibraryapps.ui.transaction.TransactionDetailFragment"
         tools:layout="@layout/fragment_transaction_detail" />
+
+    <!-- Add EditBookFragment -->
+    <fragment
+        android:id="@+id/editBookFragment"
+        android:name="com.example.mylibraryapps.ui.book.EditBookFragment"
+        android:label="Edit Book"
+        tools:layout="@layout/fragment_edit_book">
+
+        <!-- Add argument for book data -->
+        <argument
+            android:name="book"
+            app:argType="com.example.mylibraryapps.model.Book" />
+    </fragment>
 
 </navigation>

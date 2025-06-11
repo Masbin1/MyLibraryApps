@@ -52,3 +52,4 @@ google-services = { id = "com.google.gms.google-services", version = "4.4.0" }
 kotlin-parcelize = { id = "kotlin-parcelize", version = "1.9.23" }
 dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+navigation-safe-args = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigationFragmentKtx" }

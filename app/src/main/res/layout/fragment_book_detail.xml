@@ -273,6 +273,16 @@
                 android:textSize="16sp"
                 android:background="@drawable/rounded_button"
                 android:stateListAnimator="@null" />
+
+            <Button
+                android:id="@+id/btnEdit"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="24dp"
+                android:text="Edit"
+                android:layout_gravity="end"
+                android:background="@drawable/rounded_button"/>
+
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -5,7 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentBookDetailBinding
 import com.example.mylibraryapps.model.Book
 import com.example.mylibraryapps.model.Transaction
@@ -37,22 +40,8 @@ class BookDetailFragment : Fragment() {
 
         arguments?.let {
             book = it.getParcelable("book") ?: return@let
-
-            binding.tvBookTitle.text = book.title
-            binding.tvAuthor.text = book.author
-            binding.tvPublisher.text = book.publisher
-            binding.tvPurchaseDate.text = book.purchaseDate.toString()
-            binding.tvSpecifications.text = book.specifications
-            binding.tvMaterial.text = book.material
-            binding.tvQuantity.text = book.quantity.toString()
-            binding.tvGenre.text = book.genre
-
-            if (book.coverUrl.isNotEmpty()) {
-                Glide.with(this)
-                    .load(book.coverUrl)
-                    .into(binding.ivCover)
-            }
-
+            
+            // Set up listeners
             binding.btnBack.setOnClickListener {
                 requireActivity().onBackPressed()
             }
@@ -60,7 +49,46 @@ class BookDetailFragment : Fragment() {
             binding.btnPinjam.setOnClickListener {
                 borrowBook()
             }
+
+            binding.btnEdit.setOnClickListener {
+                openEditBookFragment()
+            }
+            
+            // Update UI with book data
+            updateUIWithBookData()
+            
+            // Observe for book updates from EditBookFragment
+            findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<Book>("updated_book")?.observe(
+                viewLifecycleOwner
+            ) { updatedBook ->
+                book = updatedBook
+                updateUIWithBookData()
+            }
         }
+    }
+
+    private fun updateUIWithBookData() {
+        binding.tvBookTitle.text = book.title
+        binding.tvAuthor.text = book.author
+        binding.tvPublisher.text = book.publisher
+        binding.tvPurchaseDate.text = book.getFormattedDate()
+        binding.tvSpecifications.text = book.specifications
+        binding.tvMaterial.text = book.material
+        binding.tvQuantity.text = book.quantity.toString()
+        binding.tvGenre.text = book.genre
+
+        if (book.coverUrl.isNotEmpty()) {
+            Glide.with(this)
+                .load(book.coverUrl)
+                .into(binding.ivCover)
+        }
+    }
+
+    private fun openEditBookFragment() {
+        val bundle = Bundle().apply {
+            putParcelable("book", book)
+        }
+        findNavController().navigate(R.id.editBookFragment, bundle)
     }
 
     private fun borrowBook() {
