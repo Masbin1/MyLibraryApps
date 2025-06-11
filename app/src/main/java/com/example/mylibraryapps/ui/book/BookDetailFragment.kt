@@ -54,6 +54,12 @@ class BookDetailFragment : Fragment() {
                 openEditBookFragment()
             }
             
+            // Initially hide the edit button, will show it only for admin users
+            binding.btnEdit.visibility = View.GONE
+            
+            // Check if current user is admin
+            checkIfUserIsAdmin()
+            
             // Update UI with book data
             updateUIWithBookData()
             
@@ -184,6 +190,29 @@ class BookDetailFragment : Fragment() {
             }
             .addOnFailureListener { e ->
                 showToast("Gagal mengajukan peminjaman: ${e.message}")
+            }
+    }
+
+    private fun checkIfUserIsAdmin() {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            binding.btnEdit.visibility = View.GONE
+            return
+        }
+
+        // Check if user is admin in Firestore
+        db.collection("users").document(currentUser.uid)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val isAdmin = document.getBoolean("is_admin") ?: false
+                    binding.btnEdit.visibility = if (isAdmin) View.VISIBLE else View.GONE
+                } else {
+                    binding.btnEdit.visibility = View.GONE
+                }
+            }
+            .addOnFailureListener {
+                binding.btnEdit.visibility = View.GONE
             }
     }
 
