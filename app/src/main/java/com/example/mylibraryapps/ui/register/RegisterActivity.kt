@@ -85,7 +85,7 @@ class RegisterActivity : AppCompatActivity() {
 
                     // Simpan data user ke Firestore
                     val userId = authResult.user?.uid ?: nis
-                    val user = User(nama, nis, email, kelas, is_admin) // Tanpa password!
+                    val user = User(userId, nama, nis, email, kelas, is_admin) // Tanpa password!
 
                     db.collection("users").document(userId).set(user)
                         .addOnSuccessListener {

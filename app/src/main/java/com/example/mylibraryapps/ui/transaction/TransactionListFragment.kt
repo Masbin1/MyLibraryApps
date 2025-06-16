@@ -7,14 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentTransactionListBinding
 import com.example.mylibraryapps.model.Transaction
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -23,20 +21,20 @@ class TransactionListFragment : Fragment() {
     private var _binding: FragmentTransactionListBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: TransactionAdapter
-    private val db = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
+    private lateinit var viewModel: TransactionViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentTransactionListBinding.inflate(inflater, container, false)
+        viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         setupToolbar()
         setupRecyclerView()
-        loadInitialData()
+        setupObservers()
     }
 
     private fun setupToolbar() {
@@ -47,15 +45,15 @@ class TransactionListFragment : Fragment() {
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_filter_all -> {
-                    loadTransactions()
+                    viewModel.refreshTransactions()
                     true
                 }
                 R.id.action_filter_borrow -> {
-                    loadTransactions("sedang dipinjam")
+                    viewModel.refreshTransactions("sedang dipinjam")
                     true
                 }
                 R.id.action_filter_return -> {
-                    loadTransactions("sudah dikembalikan")
+                    viewModel.refreshTransactions("sudah dikembalikan")
                     true
                 }
                 else -> false
@@ -79,72 +77,29 @@ class TransactionListFragment : Fragment() {
         }
     }
 
-    private fun loadInitialData() {
-        binding.progressBar.visibility = View.VISIBLE
-        binding.tvEmpty.visibility = View.GONE
-        loadTransactions()
-    }
-
-    private fun loadTransactions(statusFilter: String? = null) {
-        val userId = auth.currentUser?.uid ?: run {
-            showError("User tidak terautentikasi")
-            return
+    private fun setupObservers() {
+        // Show/hide progress bar based on loading state
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
-
-        // Pertama, ambil data user untuk cek status admin
-        db.collection("users").document(userId).get()
-            .addOnSuccessListener { userDocument ->
-                val isAdmin = userDocument.getBoolean("is_admin") ?: false
-                // Buat query dasar
-                val query = if (isAdmin) {
-                    // Jika admin, ambil semua transaksi tanpa filter userId
-                    db.collection("transactions")
-                } else {
-                    // Jika bukan admin, filter berdasarkan userId
-                    db.collection("transactions")
-                        .whereEqualTo("userId", userId)
-                }
-
-                // Tambahkan filter status jika ada (kecuali untuk admin jika ingin menonaktifkan filter)
-                if (!statusFilter.isNullOrEmpty() && !isAdmin) {
-                    query.whereEqualTo("status", statusFilter)
-                }
-
-                // Eksekusi query
-                query.get()
-                    .addOnSuccessListener { snapshot ->
-                        handleSuccess(snapshot, statusFilter)
-                    }
-                    .addOnFailureListener { e ->
-                        handleError(e)
-                    }
-            }
-            .addOnFailureListener { e ->
-                showError("Gagal memuat data user: ${e.message}")
-            }
-    }
-
-    private fun handleSuccess(snapshot: QuerySnapshot, statusFilter: String?) {
-        binding.progressBar.visibility = View.GONE
-
-        val transactions = snapshot.documents.mapNotNull { doc ->
-            try {
-                doc.toObject(Transaction::class.java)?.copy(id = doc.id)
-            } catch (e: Exception) {
-                Log.w("TransactionList", "Error parsing doc ${doc.id}", e)
-                null
+        
+        // Handle error messages
+        viewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
+            errorMessage?.let {
+                showError(it)
+                viewModel.clearErrorMessage()
             }
         }
-
-        val processedList = transactions
-            .filter { transaction -> statusFilter?.let { it == transaction.status } ?: true }
-            .sortedByDescending { parseDate(it.borrowDate) }
-
-        if (processedList.isEmpty()) {
-            showEmptyState(statusFilter)
-        } else {
-            adapter.submitList(processedList)
-            binding.tvEmpty.visibility = View.GONE
+        
+        // Update transaction list
+        viewModel.transactions.observe(viewLifecycleOwner) { transactions ->
+            if (transactions.isEmpty()) {
+                showEmptyState(null)
+            } else {
+                val sortedList = transactions.sortedByDescending { parseDate(it.borrowDate) }
+                adapter.submitList(sortedList)
+                binding.tvEmpty.visibility = View.GONE
+            }
         }
     }
 
@@ -165,22 +120,21 @@ class TransactionListFragment : Fragment() {
         binding.tvEmpty.visibility = View.VISIBLE
     }
 
-    private fun handleError(e: Exception) {
-        binding.progressBar.visibility = View.GONE
-        Log.e("TransactionList", "Error loading data", e)
-        showError("Gagal memuat data: ${e.localizedMessage ?: "Unknown error"}")
-    }
-
     private fun navigateToDetail(transaction: Transaction) {
         val bundle = Bundle().apply {
             putParcelable("transaction", transaction)
         }
         
-        // Navigate directly to the destination fragment
-        findNavController().navigate(
-            R.id.transactionDetailFragment,
-            bundle
-        )
+        try {
+            // Navigate directly to the destination fragment
+            findNavController().navigate(
+                R.id.transactionDetailFragment,
+                bundle
+            )
+        } catch (e: Exception) {
+            Log.e("TransactionList", "Navigation error", e)
+            showToast("Navigasi gagal: ${e.message}")
+        }
     }
 
     private fun showToast(message: String) {

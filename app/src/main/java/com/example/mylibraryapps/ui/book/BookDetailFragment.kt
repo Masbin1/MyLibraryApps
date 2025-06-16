@@ -1,6 +1,7 @@
 package com.example.mylibraryapps.ui.book
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.example.mylibraryapps.MyLibraryApplication
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentBookDetailBinding
 import com.example.mylibraryapps.model.Book
@@ -194,26 +196,29 @@ class BookDetailFragment : Fragment() {
     }
 
     private fun checkIfUserIsAdmin() {
+        // For debugging - force show the edit button
+        val forceShowEditButton = true
+        
+        if (forceShowEditButton) {
+            binding.btnEdit.visibility = View.VISIBLE
+            Log.d("BookDetailFragment", "Edit button forced visible")
+            return
+        }
+        
         val currentUser = auth.currentUser
         if (currentUser == null) {
             binding.btnEdit.visibility = View.GONE
             return
         }
 
-        // Check if user is admin in Firestore
-        db.collection("users").document(currentUser.uid)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val isAdmin = document.getBoolean("is_admin") ?: false
-                    binding.btnEdit.visibility = if (isAdmin) View.VISIBLE else View.GONE
-                } else {
-                    binding.btnEdit.visibility = View.GONE
-                }
-            }
-            .addOnFailureListener {
-                binding.btnEdit.visibility = View.GONE
-            }
+        // Get repository from Application
+        val repository = (requireActivity().application as MyLibraryApplication).repository
+        
+        // Observe user data from repository
+        repository.userData.observe(viewLifecycleOwner) { user ->
+            Log.d("BookDetailFragment", "User admin status: ${user?.is_admin}, User: $user")
+            binding.btnEdit.visibility = if (user?.is_admin == true) View.VISIBLE else View.GONE
+        }
     }
 
     private fun showToast(message: String) {

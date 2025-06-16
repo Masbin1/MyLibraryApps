@@ -2,6 +2,7 @@
 package com.example.mylibraryapps.model
 
 data class User(
+    val uid: String = "",
     val nama: String = "",
     val nis: String = "",
     val email: String = "",

@@ -46,19 +46,30 @@ class HomeFragment : Fragment() {
         }
     }
 
-    // Tambahkan fungsi ini
+    // Setup Add Book button based on admin status
     private fun setupAddBookButton() {
-        // Cek apakah user admin (sesuaikan dengan logika aplikasi Anda)
-        val isAdmin = true // Ganti dengan logika pengecekan admin yang sesuai
-
-        if (isAdmin) {
+        // For debugging - force show the button
+        val forceShowAdminButton = true
+        
+        if (forceShowAdminButton) {
             binding.fabAddBook.visibility = View.VISIBLE
             binding.fabAddBook.setOnClickListener {
-                // Gunakan ID yang sesuai dengan nav_graph.xml
                 findNavController().navigate(R.id.action_homeFragment_to_addBookFragment)
             }
+            Log.d("HomeFragment", "Admin button forced visible")
         } else {
-            binding.fabAddBook.visibility = View.GONE
+            // Normal behavior - observe admin status from ViewModel
+            homeViewModel.isAdmin.observe(viewLifecycleOwner) { isAdmin ->
+                Log.d("HomeFragment", "Admin status from ViewModel: $isAdmin")
+                binding.fabAddBook.visibility = if (isAdmin) View.VISIBLE else View.GONE
+                
+                if (isAdmin) {
+                    binding.fabAddBook.setOnClickListener {
+                        // Gunakan ID yang sesuai dengan nav_graph.xml
+                        findNavController().navigate(R.id.action_homeFragment_to_addBookFragment)
+                    }
+                }
+            }
         }
     }
 

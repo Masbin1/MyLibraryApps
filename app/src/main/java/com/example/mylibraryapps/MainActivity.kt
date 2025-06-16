@@ -2,26 +2,41 @@ package com.example.mylibraryapps
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.example.mylibraryapps.data.AppRepository
 import com.example.mylibraryapps.databinding.ActivityMainBinding
 import com.example.mylibraryapps.ui.login.LoginActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedListener {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var auth: FirebaseAuth
+    private lateinit var navController: NavController
+    private lateinit var repository: AppRepository
+    
+    // Flag to prevent rapid navigation
+    private var isNavigating = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
+
+        // Get repository from Application
+        repository = (application as MyLibraryApplication).repository
 
         // Initialize Firebase Auth
         auth = Firebase.auth
@@ -36,11 +51,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupNavigation()
+        
+        // Observe repository error messages
+        repository.errorMessage.observe(this) { errorMessage ->
+            errorMessage?.let {
+                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+                repository.clearErrorMessage()
+            }
+        }
     }
 
     private fun setupNavigation() {
         val navView: BottomNavigationView = binding.navView
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        navController = findNavController(R.id.nav_host_fragment_activity_main)
+        navController.addOnDestinationChangedListener(this)
 
         // Configure top level destinations
         val appBarConfiguration = AppBarConfiguration(
@@ -54,13 +78,15 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        // Custom navigation handling
+        // Custom navigation handling with debounce
         navView.setOnItemSelectedListener { item ->
+            if (isNavigating) {
+                return@setOnItemSelectedListener true
+            }
+            
             when (item.itemId) {
                 R.id.navigation_home -> {
-                    if (navController.currentDestination?.id != R.id.navigation_home) {
-                        navController.navigate(R.id.navigation_home)
-                    }
+                    safeNavigate(R.id.navigation_home)
                     true
                 }
                 R.id.navigation_list_transaction -> {
@@ -71,15 +97,13 @@ class MainActivity : AppCompatActivity() {
                         }
                         R.id.navigation_list_transaction -> true
                         else -> {
-                            navController.navigate(R.id.navigation_list_transaction)
+                            safeNavigate(R.id.navigation_list_transaction)
                             true
                         }
                     }
                 }
                 R.id.navigation_account -> {
-                    if (navController.currentDestination?.id != R.id.navigation_account) {
-                        navController.navigate(R.id.navigation_account)
-                    }
+                    safeNavigate(R.id.navigation_account)
                     true
                 }
                 else -> false
@@ -93,6 +117,24 @@ class MainActivity : AppCompatActivity() {
         auth.addAuthStateListener { firebaseAuth ->
             if (firebaseAuth.currentUser == null) {
                 redirectToLogin()
+            }
+        }
+    }
+    
+    private fun safeNavigate(destinationId: Int) {
+        if (navController.currentDestination?.id != destinationId && !isNavigating) {
+            isNavigating = true
+            
+            try {
+                navController.navigate(destinationId)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Navigation error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+            
+            // Reset navigation flag after delay
+            lifecycleScope.launch {
+                delay(300) // Prevent rapid navigation
+                isNavigating = false
             }
         }
     }
@@ -111,5 +153,18 @@ class MainActivity : AppCompatActivity() {
         if (auth.currentUser == null) {
             redirectToLogin()
         }
+    }
+    
+    override fun onDestinationChanged(
+        controller: NavController,
+        destination: NavDestination,
+        arguments: Bundle?
+    ) {
+        // Reset navigation flag when destination changes
+        isNavigating = false
+    }
+    
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp() || super.onSupportNavigateUp()
     }
 }
