@@ -1,13 +1,16 @@
 package com.example.mylibraryapps.data
 
+import android.icu.util.Calendar
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.mylibraryapps.model.Book
+import com.example.mylibraryapps.model.Notification
 import com.example.mylibraryapps.model.Transaction
 import com.example.mylibraryapps.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.type.Date
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -33,6 +36,15 @@ class AppRepository {
     val transactions: LiveData<List<Transaction>> = _transactions
     private var cachedTransactions: List<Transaction> = emptyList()
     
+    // Cache for notifications
+    private val _notifications = MutableLiveData<List<Notification>>()
+    val notifications: LiveData<List<Notification>> = _notifications
+    private var cachedNotifications: List<Notification> = emptyList()
+    
+    // Unread notifications count
+    private val _unreadNotificationsCount = MutableLiveData<Int>()
+    val unreadNotificationsCount: LiveData<Int> = _unreadNotificationsCount
+    
     // Loading and error states
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
@@ -49,6 +61,7 @@ class AppRepository {
         if (currentUser != null) {
             loadUserData(currentUser.uid)
             loadTransactions()
+            loadNotifications(currentUser.uid)
         }
     }
     
@@ -287,6 +300,244 @@ class AppRepository {
             .addOnFailureListener { e ->
                 onFailure(e)
             }
+    }
+    
+    /**
+     * Load notifications for a user
+     */
+    fun loadNotifications(userId: String) {
+        _isLoading.value = true
+        
+        // Return cached data immediately if available
+        if (cachedNotifications.isNotEmpty()) {
+            _notifications.value = cachedNotifications
+            updateUnreadCount()
+        }
+        
+        db.collection("notifications")
+            .whereEqualTo("userId", userId)
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val notificationsList = snapshot.documents.mapNotNull { doc ->
+                    try {
+                        // Convert Firestore timestamp to Date
+                        val data = doc.data
+                        val timestamp = (data?.get("timestamp") as? com.google.firebase.Timestamp)?.toDate() ?: java.util.Date()
+                        
+                        Notification(
+                            id = doc.id,
+                            userId = data?.get("userId") as? String ?: "",
+                            title = data?.get("title") as? String ?: "",
+                            message = data?.get("message") as? String ?: "",
+                            timestamp = timestamp as java.util.Date,
+                            isRead = data?.get("isRead") as? Boolean ?: false,
+                            type = data?.get("type") as? String ?: "general",
+                            relatedItemId = data?.get("relatedItemId") as? String ?: "",
+                            relatedItemTitle = data?.get("relatedItemTitle") as? String ?: ""
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing notification ${doc.id}", e)
+                        null
+                    }
+                }
+                
+                cachedNotifications = notificationsList
+                _notifications.value = notificationsList
+                updateUnreadCount()
+                _isLoading.value = false
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error loading notifications", e)
+                _errorMessage.value = "Failed to load notifications: ${e.message}"
+                _isLoading.value = false
+            }
+    }
+    
+    /**
+     * Mark a notification as read
+     */
+    fun markNotificationAsRead(notificationId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        db.collection("notifications").document(notificationId)
+            .update("isRead", true)
+            .addOnSuccessListener {
+                // Update cache
+                val updatedList = cachedNotifications.map { notification ->
+                    if (notification.id == notificationId) {
+                        notification.copy(isRead = true)
+                    } else {
+                        notification
+                    }
+                }
+                cachedNotifications = updatedList
+                _notifications.value = updatedList
+                updateUnreadCount()
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
+    
+    /**
+     * Mark all notifications as read
+     */
+    fun markAllNotificationsAsRead(onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val currentUser = auth.currentUser ?: run {
+            onFailure(Exception("User not authenticated"))
+            return
+        }
+        
+        // Get all unread notifications
+        val unreadNotifications = cachedNotifications.filter { !it.isRead }
+        
+        if (unreadNotifications.isEmpty()) {
+            onSuccess()
+            return
+        }
+        
+        // Create a batch operation
+        val batch = db.batch()
+        
+        // Add update operations to batch
+        unreadNotifications.forEach { notification ->
+            val notificationRef = db.collection("notifications").document(notification.id)
+            batch.update(notificationRef, "isRead", true)
+        }
+        
+        // Execute batch
+        batch.commit()
+            .addOnSuccessListener {
+                // Update cache
+                val updatedList = cachedNotifications.map { notification ->
+                    notification.copy(isRead = true)
+                }
+                cachedNotifications = updatedList
+                _notifications.value = updatedList
+                _unreadNotificationsCount.value = 0
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
+    
+    /**
+     * Create a notification for a user
+     */
+    fun createNotification(notification: Notification, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        // Convert Date to Firestore Timestamp
+        val firestoreTimestamp = com.google.firebase.Timestamp(notification.timestamp)
+        
+        // Create notification data
+        val notificationData = hashMapOf(
+            "userId" to notification.userId,
+            "title" to notification.title,
+            "message" to notification.message,
+            "timestamp" to firestoreTimestamp,
+            "isRead" to notification.isRead,
+            "type" to notification.type,
+            "relatedItemId" to notification.relatedItemId,
+            "relatedItemTitle" to notification.relatedItemTitle
+        )
+        
+        // Add to Firestore
+        db.collection("notifications")
+            .add(notificationData)
+            .addOnSuccessListener { documentReference ->
+                // Update cache with new notification
+                val newNotification = notification.copy(id = documentReference.id)
+                val updatedList = listOf(newNotification) + cachedNotifications
+                cachedNotifications = updatedList
+                _notifications.value = updatedList
+                updateUnreadCount()
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
+    
+    /**
+     * Create return reminder notifications for all users with books due soon
+     */
+    fun createReturnReminders() {
+        // Get all active transactions
+        db.collection("transactions")
+            .whereEqualTo("status", "dipinjam")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val transactions = snapshot.documents.mapNotNull { doc ->
+                    try {
+                        doc.toObject(Transaction::class.java)?.copy(id = doc.id)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing transaction ${doc.id}", e)
+                        null
+                    }
+                }
+                
+                // Check each transaction for due date
+                val calendar = Calendar.getInstance()
+                val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                val today = dateFormat.format(calendar.time)
+                
+                transactions.forEach { transaction ->
+                    try {
+                        val returnDate = dateFormat.parse(transaction.returnDate)
+                        val todayDate = dateFormat.parse(today)
+                        
+                        if (returnDate != null && todayDate != null) {
+                            val diff = (returnDate.time - todayDate.time) / (24 * 60 * 60 * 1000)
+                            
+                            // Create notification for books due in 2 days or overdue
+                            if (diff <= 2) {
+                                val title = if (diff < 0) "Buku Terlambat" else "Pengingat Pengembalian"
+                                val message = if (diff < 0) 
+                                    "Buku '${transaction.title}' sudah melewati batas waktu pengembalian. Segera kembalikan untuk menghindari denda." 
+                                else 
+                                    "Buku '${transaction.title}' harus dikembalikan dalam $diff hari. Jangan lupa untuk mengembalikannya tepat waktu."
+                                
+                                val notification = Notification(
+                                    userId = transaction.userId,
+                                    title = title,
+                                    message = message,
+                                    timestamp = java.util.Date(),
+                                    isRead = false,
+                                    type = if (diff < 0) "overdue" else "return_reminder",
+                                    relatedItemId = transaction.id,
+                                    relatedItemTitle = transaction.title
+                                )
+                                
+                                // Check if similar notification already exists
+                                val existingNotification = cachedNotifications.find { 
+                                    it.relatedItemId == transaction.id && 
+                                    it.type == notification.type &&
+                                    !it.isRead
+                                }
+                                
+                                if (existingNotification == null) {
+                                    createNotification(notification, {}, { e ->
+                                        Log.e(TAG, "Failed to create reminder notification", e)
+                                    })
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error processing transaction date", e)
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error loading transactions for reminders", e)
+            }
+    }
+    
+    /**
+     * Update unread notifications count
+     */
+    private fun updateUnreadCount() {
+        val unreadCount = cachedNotifications.count { !it.isRead }
+        _unreadNotificationsCount.value = unreadCount
     }
     
     /**
