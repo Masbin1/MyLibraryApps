@@ -1,6 +1,9 @@
 package com.example.mylibraryapps.ui.login
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -30,13 +33,16 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         auth = Firebase.auth
 
-        // Cek apakah user sudah login
-        auth.currentUser?.let {
-            // User sudah login, langsung ke MainActivity
+        // Cek apakah user sudah login dan apakah ini adalah instalasi baru
+        val isFirstRun = isFirstInstallation()
+        
+        if (!isFirstRun && auth.currentUser != null) {
+            // User sudah login dan bukan instalasi pertama, langsung ke MainActivity
             startActivity(Intent(this, MainActivity::class.java))
             finish()
             return
         }
+        
         setContentView(R.layout.activity_login)
         supportActionBar?.hide()
         // Binding semua komponen
@@ -124,5 +130,23 @@ class LoginActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
+    }
+    
+    /**
+     * Checks if this is the first time the app is being installed/run.
+     * Uses SharedPreferences to store and retrieve this information.
+     * @return true if this is the first run, false otherwise
+     */
+    private fun isFirstInstallation(): Boolean {
+        val prefs: SharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val isFirstRun = prefs.getBoolean("is_first_run", true)
+        
+        if (isFirstRun) {
+            // If this is the first run, update the preference for future runs
+            prefs.edit().putBoolean("is_first_run", false).apply()
+            return true
+        }
+        
+        return false
     }
 }

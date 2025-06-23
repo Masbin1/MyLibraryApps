@@ -82,21 +82,67 @@ class AccountFragment : Fragment() {
     }
 
     private fun showLogoutConfirmationDialog() {
+        val options = arrayOf(
+            "Keluar (tetap ingat akun)",
+            "Keluar dan hapus data login"
+        )
+        
         AlertDialog.Builder(requireContext())
             .setTitle("Keluar Akun")
-            .setMessage("Apakah Anda yakin ingin keluar?")
-            .setPositiveButton("Ya") { _, _ ->
-                // Sign out dari Firebase
-                auth.signOut()
-
-                // Clear semua activity dan kembali ke LoginActivity
-                val intent = Intent(requireContext(), LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-                requireActivity().finish()
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> {
+                        // Logout biasa
+                        performLogout()
+                    }
+                    1 -> {
+                        // Logout dan hapus data login
+                        performLogoutAndClearData()
+                    }
+                }
             }
-            .setNegativeButton("Tidak", null)
+            .setNegativeButton("Batal", null)
             .show()
+    }
+    
+    private fun performLogout() {
+        // Sign out dari Firebase
+        auth.signOut()
+        
+        // Kembali ke LoginActivity
+        navigateToLogin()
+    }
+    
+    private fun performLogoutAndClearData() {
+        // Sign out dari Firebase
+        auth.signOut()
+        
+        // Hapus data cache aplikasi
+        try {
+            // Hapus shared preferences yang mungkin menyimpan data login
+            val sharedPrefs = requireActivity().getSharedPreferences("com.example.mylibraryapps", 0)
+            sharedPrefs.edit().clear().apply()
+            
+            // Hapus cache Firebase Authentication
+            requireContext().getSharedPreferences("com.google.firebase.auth.api.Store", 0)
+                .edit().clear().apply()
+                
+            // Hapus cache lainnya
+            requireContext().cacheDir.deleteRecursively()
+        } catch (e: Exception) {
+            // Abaikan error
+        }
+        
+        // Kembali ke LoginActivity
+        navigateToLogin()
+    }
+    
+    private fun navigateToLogin() {
+        // Clear semua activity dan kembali ke LoginActivity
+        val intent = Intent(requireContext(), LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        requireActivity().finish()
     }
 
     override fun onDestroyView() {

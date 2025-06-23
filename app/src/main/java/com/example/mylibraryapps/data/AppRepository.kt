@@ -56,12 +56,21 @@ class AppRepository {
      * Preload all data when the application starts
      */
     fun preloadData() {
-        loadBooks()
+        // Check if user is authenticated before loading any data
         val currentUser = auth.currentUser
         if (currentUser != null) {
+            // User is authenticated, load all data
+            Log.d(TAG, "User authenticated, loading data for user: ${currentUser.uid}")
+            loadBooks()
             loadUserData(currentUser.uid)
             loadTransactions()
             loadNotifications(currentUser.uid)
+        } else {
+            // User is not authenticated, only load public data or show message
+            Log.d(TAG, "User not authenticated, loading only public data")
+            _errorMessage.value = "Silakan login untuk mengakses semua fitur aplikasi"
+            // Optionally load public data that doesn't require authentication
+            loadBooks()
         }
     }
     
@@ -93,8 +102,13 @@ class AppRepository {
                 _isLoading.value = false
             }
             .addOnFailureListener { e ->
+                val errorMsg = if (e.message?.contains("PERMISSION_DENIED") == true) {
+                    "Tidak memiliki izin untuk mengakses data buku. Pastikan Anda sudah login dan memiliki izin yang cukup."
+                } else {
+                    "Failed to load books: ${e.message}"
+                }
                 Log.e(TAG, "Error loading books", e)
-                _errorMessage.value = "Failed to load books: ${e.message}"
+                _errorMessage.value = errorMsg
                 _isLoading.value = false
             }
     }
@@ -151,8 +165,13 @@ class AppRepository {
                 }
             }
             .addOnFailureListener { e ->
+                val errorMsg = if (e.message?.contains("PERMISSION_DENIED") == true) {
+                    "Tidak memiliki izin untuk mengakses data pengguna. Pastikan Anda sudah login dan memiliki izin yang cukup."
+                } else {
+                    "Failed to load user data: ${e.message}"
+                }
                 Log.e(TAG, "Error loading user data", e)
-                _errorMessage.value = "Failed to load user data: ${e.message}"
+                _errorMessage.value = errorMsg
             }
     }
     
@@ -206,14 +225,24 @@ class AppRepository {
                         _isLoading.value = false
                     }
                     .addOnFailureListener { e ->
+                        val errorMsg = if (e.message?.contains("PERMISSION_DENIED") == true) {
+                            "Tidak memiliki izin untuk mengakses data transaksi. Pastikan Anda sudah login dan memiliki izin yang cukup."
+                        } else {
+                            "Failed to load transactions: ${e.message}"
+                        }
                         Log.e(TAG, "Error loading transactions", e)
-                        _errorMessage.value = "Failed to load transactions: ${e.message}"
+                        _errorMessage.value = errorMsg
                         _isLoading.value = false
                     }
             }
             .addOnFailureListener { e ->
+                val errorMsg = if (e.message?.contains("PERMISSION_DENIED") == true) {
+                    "Tidak memiliki izin untuk memeriksa status admin. Pastikan Anda sudah login dan memiliki izin yang cukup."
+                } else {
+                    "Failed to check admin status: ${e.message}"
+                }
                 Log.e(TAG, "Error checking admin status", e)
-                _errorMessage.value = "Failed to check admin status: ${e.message}"
+                _errorMessage.value = errorMsg
                 _isLoading.value = false
             }
     }
@@ -348,8 +377,13 @@ class AppRepository {
                 _isLoading.value = false
             }
             .addOnFailureListener { e ->
+                val errorMsg = if (e.message?.contains("PERMISSION_DENIED") == true) {
+                    "Tidak memiliki izin untuk mengakses notifikasi. Pastikan Anda sudah login dan memiliki izin yang cukup."
+                } else {
+                    "Failed to load notifications: ${e.message}"
+                }
                 Log.e(TAG, "Error loading notifications", e)
-                _errorMessage.value = "Failed to load notifications: ${e.message}"
+                _errorMessage.value = errorMsg
                 _isLoading.value = false
             }
     }
