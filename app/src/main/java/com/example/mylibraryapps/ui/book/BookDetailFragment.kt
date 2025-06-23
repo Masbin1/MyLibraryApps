@@ -201,13 +201,16 @@ class BookDetailFragment : Fragment() {
         
         if (forceShowEditButton) {
             binding.btnEdit.visibility = View.VISIBLE
-            Log.d("BookDetailFragment", "Edit button forced visible")
+            // Hide borrow button for admin
+            binding.btnPinjam.visibility = View.GONE
+            Log.d("BookDetailFragment", "Edit button forced visible, borrow button hidden")
             return
         }
         
         val currentUser = auth.currentUser
         if (currentUser == null) {
             binding.btnEdit.visibility = View.GONE
+            binding.btnPinjam.visibility = View.VISIBLE
             return
         }
 
@@ -217,7 +220,9 @@ class BookDetailFragment : Fragment() {
         // Observe user data from repository
         repository.userData.observe(viewLifecycleOwner) { user ->
             Log.d("BookDetailFragment", "User admin status: ${user?.is_admin}, User: $user")
-            binding.btnEdit.visibility = if (user?.is_admin == true) View.VISIBLE else View.GONE
+            val isAdmin = user?.is_admin == true
+            binding.btnEdit.visibility = if (isAdmin) View.VISIBLE else View.GONE
+            binding.btnPinjam.visibility = if (isAdmin) View.GONE else View.VISIBLE
         }
     }
 
