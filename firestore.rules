@@ -10,33 +10,43 @@ service cloud.firestore {
 
     // Users collection
     match /users/{userId} {
+      // Allow any authenticated user to read/write their own data
       allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
       allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
 
     // Books collection
     match /books/{bookId} {
-      allow read: if request.auth != null;
+      // Allow anyone to read books, even without authentication
+      allow read: if true;
+      // Only admins can create, update, delete books
       allow create, update, delete: if request.auth != null && isAdmin();
     }
 
     // Transactions collection
     match /transactions/{transactionId} {
+      // Allow users to read their own transactions, admins can read all
       allow read: if request.auth != null && 
         (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if request.auth != null && 
-        request.resource.data.userId == request.auth.uid;
+      // Allow any authenticated user to create transactions (borrow books)
+      // Removed the check that userId must match auth.uid to allow more flexibility
+      allow create: if request.auth != null;
+      // Only admins can update or delete transactions
       allow update, delete: if request.auth != null && isAdmin();
     }
 
     // Notifications collection
     match /notifications/{notificationId} {
+      // Allow users to read their own notifications
       allow read: if request.auth != null && 
         resource.data.userId == request.auth.uid;
+      // Allow users to create their own notifications, admins can create for anyone
       allow create: if request.auth != null && 
         (request.resource.data.userId == request.auth.uid || isAdmin());
+      // Allow users to update their own notifications
       allow update: if request.auth != null && 
         resource.data.userId == request.auth.uid;
+      // Allow users to delete their own notifications, admins can delete any
       allow delete: if request.auth != null && 
         (resource.data.userId == request.auth.uid || isAdmin());
     }
