@@ -8,6 +8,7 @@ import com.example.mylibraryapps.model.Book
 import com.example.mylibraryapps.model.Notification
 import com.example.mylibraryapps.model.Transaction
 import com.example.mylibraryapps.model.User
+import com.example.mylibraryapps.utils.FirestoreErrorHandler
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.type.Date
@@ -75,6 +76,66 @@ class AppRepository {
     }
     
     /**
+     * Handle index errors by using a fallback query
+     * This is a workaround for missing indexes
+     */
+    private fun handleIndexError(collection: String, userId: String, operation: String, onSuccess: (List<Any>) -> Unit) {
+        Log.w(TAG, "Using fallback query for $collection due to index error")
+        
+        // Use a simpler query that doesn't require a composite index
+        db.collection(collection)
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val items = snapshot.documents.mapNotNull { doc ->
+                    try {
+                        when (collection) {
+                            "notifications" -> {
+                                val notification = doc.toObject(Notification::class.java)?.copy(id = doc.id)
+                                notification
+                            }
+                            "transactions" -> {
+                                val transaction = doc.toObject(Transaction::class.java)?.copy(id = doc.id)
+                                transaction
+                            }
+                            else -> null
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing document ${doc.id}", e)
+                        null
+                    }
+                }
+                
+                // Sort the results manually (since we can't use orderBy in the query)
+                val sortedItems = when (collection) {
+                    "notifications" -> {
+                        @Suppress("UNCHECKED_CAST")
+                        (items as List<Notification>).sortedByDescending { it.timestamp }
+                    }
+                    "transactions" -> {
+                        @Suppress("UNCHECKED_CAST")
+                        (items as List<Transaction>).sortedByDescending { 
+                            try {
+                                val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                                dateFormat.parse(it.borrowDate)?.time ?: 0
+                            } catch (e: Exception) {
+                                0L
+                            }
+                        }
+                    }
+                    else -> items
+                }
+                
+                onSuccess(sortedItems)
+            }
+            .addOnFailureListener { e ->
+                // If even the simple query fails, log the error
+                Log.e(TAG, "Fallback query for $collection also failed", e)
+                _errorMessage.value = FirestoreErrorHandler.handleException(e, operation, TAG)
+            }
+    }
+    
+    /**
      * Load all books from Firestore
      */
     fun loadBooks() {
@@ -102,13 +163,7 @@ class AppRepository {
                 _isLoading.value = false
             }
             .addOnFailureListener { e ->
-                val errorMsg = if (e.message?.contains("PERMISSION_DENIED") == true) {
-                    "Tidak memiliki izin untuk mengakses data buku. Pastikan Anda sudah login dan memiliki izin yang cukup."
-                } else {
-                    "Failed to load books: ${e.message}"
-                }
-                Log.e(TAG, "Error loading books", e)
-                _errorMessage.value = errorMsg
+                _errorMessage.value = FirestoreErrorHandler.handleException(e, "mengakses data buku", TAG)
                 _isLoading.value = false
             }
     }
@@ -165,13 +220,7 @@ class AppRepository {
                 }
             }
             .addOnFailureListener { e ->
-                val errorMsg = if (e.message?.contains("PERMISSION_DENIED") == true) {
-                    "Tidak memiliki izin untuk mengakses data pengguna. Pastikan Anda sudah login dan memiliki izin yang cukup."
-                } else {
-                    "Failed to load user data: ${e.message}"
-                }
-                Log.e(TAG, "Error loading user data", e)
-                _errorMessage.value = errorMsg
+                _errorMessage.value = FirestoreErrorHandler.handleException(e, "mengakses data pengguna", TAG)
             }
     }
     
@@ -225,24 +274,12 @@ class AppRepository {
                         _isLoading.value = false
                     }
                     .addOnFailureListener { e ->
-                        val errorMsg = if (e.message?.contains("PERMISSION_DENIED") == true) {
-                            "Tidak memiliki izin untuk mengakses data transaksi. Pastikan Anda sudah login dan memiliki izin yang cukup."
-                        } else {
-                            "Failed to load transactions: ${e.message}"
-                        }
-                        Log.e(TAG, "Error loading transactions", e)
-                        _errorMessage.value = errorMsg
+                        _errorMessage.value = FirestoreErrorHandler.handleException(e, "mengakses data transaksi", TAG)
                         _isLoading.value = false
                     }
             }
             .addOnFailureListener { e ->
-                val errorMsg = if (e.message?.contains("PERMISSION_DENIED") == true) {
-                    "Tidak memiliki izin untuk memeriksa status admin. Pastikan Anda sudah login dan memiliki izin yang cukup."
-                } else {
-                    "Failed to check admin status: ${e.message}"
-                }
-                Log.e(TAG, "Error checking admin status", e)
-                _errorMessage.value = errorMsg
+                _errorMessage.value = FirestoreErrorHandler.handleException(e, "memeriksa status admin", TAG)
                 _isLoading.value = false
             }
     }
@@ -377,14 +414,27 @@ class AppRepository {
                 _isLoading.value = false
             }
             .addOnFailureListener { e ->
-                val errorMsg = if (e.message?.contains("PERMISSION_DENIED") == true) {
-                    "Tidak memiliki izin untuk mengakses notifikasi. Pastikan Anda sudah login dan memiliki izin yang cukup."
+                // Check if this is an index error
+                if (e.message?.contains("FAILED_PRECONDITION") == true && 
+                    e.message?.contains("index") == true) {
+                    
+                    Log.w(TAG, "Index error detected in loadNotifications. Full error: ${e.message}")
+                    
+                    // Use fallback query without the complex ordering
+                    handleIndexError("notifications", userId, "mengakses notifikasi") { items ->
+                        @Suppress("UNCHECKED_CAST")
+                        val notificationsList = items as List<Notification>
+                        
+                        cachedNotifications = notificationsList
+                        _notifications.value = notificationsList
+                        updateUnreadCount()
+                        _isLoading.value = false
+                    }
                 } else {
-                    "Failed to load notifications: ${e.message}"
+                    // Handle other types of errors
+                    _errorMessage.value = FirestoreErrorHandler.handleException(e, "mengakses notifikasi", TAG)
+                    _isLoading.value = false
                 }
-                Log.e(TAG, "Error loading notifications", e)
-                _errorMessage.value = errorMsg
-                _isLoading.value = false
             }
     }
     
