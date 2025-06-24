@@ -196,21 +196,14 @@ class BookDetailFragment : Fragment() {
     }
 
     private fun checkIfUserIsAdmin() {
-        // For debugging - force show the edit button
-        val forceShowEditButton = true
-        
-        if (forceShowEditButton) {
-            binding.btnEdit.visibility = View.VISIBLE
-            // Hide borrow button for admin
-            binding.btnPinjam.visibility = View.GONE
-            Log.d("BookDetailFragment", "Edit button forced visible, borrow button hidden")
-            return
-        }
+        // Default visibility: hide edit button, show borrow button
+        binding.btnEdit.visibility = View.GONE
+        binding.btnPinjam.visibility = View.VISIBLE
         
         val currentUser = auth.currentUser
         if (currentUser == null) {
-            binding.btnEdit.visibility = View.GONE
-            binding.btnPinjam.visibility = View.VISIBLE
+            // If user is not logged in, keep default visibility
+            Log.d("BookDetailFragment", "User not logged in, hiding edit button, showing borrow button")
             return
         }
 
@@ -220,9 +213,32 @@ class BookDetailFragment : Fragment() {
         // Observe user data from repository
         repository.userData.observe(viewLifecycleOwner) { user ->
             Log.d("BookDetailFragment", "User admin status: ${user?.is_admin}, User: $user")
-            val isAdmin = user?.is_admin == true
-            binding.btnEdit.visibility = if (isAdmin) View.VISIBLE else View.GONE
-            binding.btnPinjam.visibility = if (isAdmin) View.GONE else View.VISIBLE
+            
+            if (user != null) {
+                val isAdmin = user.is_admin
+                
+                // If user is admin:
+                // - Show edit button
+                // - Hide borrow button
+                if (isAdmin) {
+                    binding.btnEdit.visibility = View.VISIBLE
+                    binding.btnPinjam.visibility = View.GONE
+                    Log.d("BookDetailFragment", "Admin user: showing edit button, hiding borrow button")
+                } 
+                // If user is not admin:
+                // - Hide edit button
+                // - Show borrow button
+                else {
+                    binding.btnEdit.visibility = View.GONE
+                    binding.btnPinjam.visibility = View.VISIBLE
+                    Log.d("BookDetailFragment", "Regular user: hiding edit button, showing borrow button")
+                }
+            } else {
+                // If user data is null, use default visibility
+                binding.btnEdit.visibility = View.GONE
+                binding.btnPinjam.visibility = View.VISIBLE
+                Log.d("BookDetailFragment", "User data null, hiding edit button, showing borrow button")
+            }
         }
     }
 
