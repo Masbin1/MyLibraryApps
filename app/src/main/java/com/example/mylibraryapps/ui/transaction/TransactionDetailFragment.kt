@@ -92,54 +92,40 @@ class TransactionDetailFragment : Fragment() {
         binding.tvBorrowDate.text = formatDate(transaction.borrowDate)
         binding.tvReturnDate.text = formatDate(transaction.returnDate)
         binding.tvStatus.text = getStatusText(transaction.status)
-        binding.tvGenre.text = transaction.genre.takeIf { !it.isNullOrEmpty() } ?: "Genre Tidak Tersedia"
-        binding.tvPublisher.text = transaction.publisher.takeIf { !it.isNullOrEmpty() } ?: "Penerbit Tidak Tersedia"
+        binding.tvGenre.text =
+            transaction.genre.takeIf { !it.isNullOrEmpty() } ?: "Genre Tidak Tersedia"
+        binding.tvPublisher.text =
+            transaction.publisher.takeIf { !it.isNullOrEmpty() } ?: "Penerbit Tidak Tersedia"
     }
 
     // Add this in your setupAdminDependentViews function
     private fun setupAdminDependentViews() {
         if (!adminCheckCompleted) return
 
-        // Tombol untuk ADMIN
         if (adminStatus) {
             when (transaction.status) {
                 "menunggu konfirmasi pinjam" -> {
                     binding.btnConfirm.visibility = View.VISIBLE
                     binding.btnConfirm.text = "Konfirmasi Peminjaman"
                     binding.btnConfirm.setOnClickListener { confirmBorrow() }
-                    binding.btnReturnRequest.visibility = View.GONE
                 }
-                "sedang dipinjam", "menunggu konfirmasi pengembalian" -> {
+
+                "sedang dipinjam" -> {
                     binding.btnConfirm.visibility = View.VISIBLE
-                    binding.btnConfirm.text = if (transaction.status == "sedang dipinjam")
-                        "Ajukan Pengembalian (Admin)" else "Konfirmasi Pengembalian"
-                    binding.btnConfirm.setOnClickListener {
-                        if (transaction.status == "sedang dipinjam") requestReturn()
-                        else confirmReturn()
-                    }
-                    binding.btnReturnRequest.visibility = View.GONE
+                    binding.btnConfirm.text = "Konfirmasi Pengembalian"
+                    binding.btnConfirm.setOnClickListener { confirmReturn() }
                 }
+
                 else -> {
                     binding.btnConfirm.visibility = View.GONE
-                    binding.btnReturnRequest.visibility = View.GONE
                 }
             }
-        }
-        // Tombol untuk USER BIASA
-        else {
+        } else {
+            // User biasa tidak tampilkan tombol apapun
             binding.btnConfirm.visibility = View.GONE
-            when (transaction.status) {
-                "sedang dipinjam" -> {
-                    binding.btnReturnRequest.visibility = View.VISIBLE
-                    binding.btnReturnRequest.text = "Ajukan Pengembalian"
-                    binding.btnReturnRequest.setOnClickListener { requestReturn() }
-                }
-                else -> {
-                    binding.btnReturnRequest.visibility = View.GONE
-                }
-            }
         }
     }
+
 
     // Add this new function to handle return requests
     private fun requestReturn() {
