@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentAccountSettingsBinding
 import com.example.mylibraryapps.model.User
@@ -110,29 +111,53 @@ class AccountSettingsFragment : Fragment() {
                         currentUser.updateEmail(email)
                             .addOnSuccessListener {
                                 Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show()
+                                // Handle password update if needed, then navigate
+                                handlePasswordUpdateAndNavigate(currentUser, password)
                             }
                             .addOnFailureListener { e ->
                                 Toast.makeText(requireContext(), "Email update failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                                // Still navigate back even if email update fails
+                                handlePasswordUpdateAndNavigate(currentUser, password)
                             }
                     } else {
                         Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show()
-                    }
-
-                    // If password is not empty, update it
-                    if (password.isNotEmpty()) {
-                        // Update password directly (re-authentication would require current password)
-                        currentUser?.updatePassword(password)
-                            ?.addOnSuccessListener {
-                                Toast.makeText(requireContext(), "Password updated", Toast.LENGTH_SHORT).show()
-                            }
-                            ?.addOnFailureListener { e ->
-                                Toast.makeText(requireContext(), "Password update failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                            }
+                        // Handle password update if needed, then navigate
+                        handlePasswordUpdateAndNavigate(currentUser, password)
                     }
                 }
                 .addOnFailureListener {
                     Toast.makeText(requireContext(), "Failed to update user", Toast.LENGTH_SHORT).show()
+                    // Navigate back even if update fails
+                    navigateBack()
                 }
+        }
+    }
+
+    private fun handlePasswordUpdateAndNavigate(currentUser: com.google.firebase.auth.FirebaseUser?, password: String) {
+        if (password.isNotEmpty() && currentUser != null) {
+            currentUser.updatePassword(password)
+                .addOnSuccessListener {
+                    Toast.makeText(requireContext(), "Password updated", Toast.LENGTH_SHORT).show()
+                    navigateBack()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(requireContext(), "Password update failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                    navigateBack()
+                }
+        } else {
+            navigateBack()
+        }
+    }
+
+    private fun navigateBack() {
+        // Check if fragment is still attached and has a valid NavController
+        if (isAdded && !isDetached && !isRemoving) {
+            try {
+                findNavController().popBackStack()
+            } catch (e: IllegalStateException) {
+                // Fallback: if NavController is not available, use activity's onBackPressed
+                requireActivity().onBackPressed()
+            }
         }
     }
 
