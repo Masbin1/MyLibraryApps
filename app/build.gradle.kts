@@ -60,4 +60,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation("com.itextpdf:itext7-core:7.2.3")
+    implementation("com.google.android.material:material:1.6.0")
 }

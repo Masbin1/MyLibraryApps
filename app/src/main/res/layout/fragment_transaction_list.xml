@@ -31,7 +31,7 @@
         tools:listitem="@layout/item_transaction" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_filter"
+        android:id="@+id/action_export_pdf"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
