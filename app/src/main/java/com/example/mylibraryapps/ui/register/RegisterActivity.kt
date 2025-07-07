@@ -45,7 +45,7 @@ class RegisterActivity : AppCompatActivity() {
         txtLogin = findViewById(R.id.txtLogin)
 
         // Setup spinner kelas
-        val kelasList = listOf("SMP KELAS 1", "SMP KELAS 2", "SMP KELAS 3")
+        val kelasList = listOf("SMP KELAS VII", "SMP KELAS VIII", "SMP KELAS IX", "GURU")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, kelasList)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerKelas.adapter = adapter

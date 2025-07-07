@@ -1,8 +1,8 @@
 <resources>
     <string-array name="kelas_array">
-        <item>Kelas 1</item>
-        <item>Kelas 2</item>
-        <item>Kelas 3</item>
+        <item>SMP KELAS VII</item>
+        <item>SMP KELAS VIII</item>
+        <item>SMP KELAS IX</item>
     </string-array>
 
     <string-array name="book_types">

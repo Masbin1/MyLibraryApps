@@ -45,7 +45,7 @@ class AccountSettingsFragment : Fragment() {
     }
 
     private fun setupKelasDropdown() {
-        val kelasOptions = listOf("SMP KELAS 1", "SMP KELAS 2", "SMP KELAS 3")
+        val kelasOptions = listOf("SMP KELAS VII", "SMP KELAS VIII", "SMP KELAS IX", "GURU")
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, kelasOptions)
         val dropdown: MaterialAutoCompleteTextView = binding.root.findViewById(R.id.autoCompleteTextView_class)
         dropdown.setAdapter(adapter)
