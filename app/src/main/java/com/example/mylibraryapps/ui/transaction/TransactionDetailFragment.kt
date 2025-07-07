@@ -116,6 +116,12 @@ class TransactionDetailFragment : Fragment() {
                     binding.btnConfirm.setOnClickListener { confirmReturn() }
                 }
 
+                "menunggu konfirmasi pengembalian" -> {
+                    binding.btnConfirm.visibility = View.VISIBLE
+                    binding.btnConfirm.text = "Konfirmasi Pengembalian"
+                    binding.btnConfirm.setOnClickListener { confirmReturn() }
+                }
+
                 else -> {
                     binding.btnConfirm.visibility = View.GONE
                 }
