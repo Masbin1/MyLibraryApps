@@ -1,13 +1,20 @@
 package com.example.mylibraryapps.ui.transaction
 
+import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -35,6 +42,10 @@ class TransactionListFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var adapter: TransactionAdapter
     private lateinit var viewModel: TransactionViewModel
+    
+    companion object {
+        private const val STORAGE_PERMISSION_CODE = 100
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -137,6 +148,22 @@ class TransactionListFragment : Fragment() {
     }
 
     private fun exportToPdf() {
+        // Check permission for Android versions before Q (API 29)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(
+                    requireContext(),
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    requireActivity(),
+                    arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    STORAGE_PERMISSION_CODE
+                )
+                return
+            }
+        }
+
         val transactions = viewModel.transactions.value ?: emptyList()
 
         if (transactions.isEmpty()) {
@@ -145,10 +172,79 @@ class TransactionListFragment : Fragment() {
         }
 
         try {
-            // Create a file in the Downloads directory
-            val downloadsDir = requireContext().getExternalFilesDir(null)
+            // Show progress
+            binding.progressBar.visibility = View.VISIBLE
+            
             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val fileName = "LaporanTransaksi_$timeStamp.pdf"
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // For Android 10+ (API 29+), use MediaStore
+                exportToMediaStore(transactions, fileName)
+            } else {
+                // For older versions, use traditional file system
+                exportToLegacyStorage(transactions, fileName)
+            }
+            
+        } catch (e: Exception) {
+            Log.e("PDF Export", "Unexpected error", e)
+            showError("Terjadi kesalahan: ${e.message}")
+        } finally {
+            binding.progressBar.visibility = View.GONE
+        }
+    }
+
+    private fun exportToMediaStore(transactions: List<Transaction>, fileName: String) {
+        try {
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                }
+            }
+
+            val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                requireContext().contentResolver.insert(
+                    MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                    contentValues
+                )
+            } else {
+                // For API < 29, fallback to legacy storage
+                exportToLegacyStorage(transactions, fileName)
+                return
+            }
+
+            uri?.let { fileUri ->
+                requireContext().contentResolver.openOutputStream(fileUri)?.use { outputStream ->
+                    // Create PDF using output stream
+                    val pdfWriter = PdfWriter(outputStream)
+                    val pdfDocument = PdfDocument(pdfWriter)
+                    val document = Document(pdfDocument)
+
+                    generatePdfContent(document, transactions)
+                    document.close()
+
+                    showToast("Laporan PDF berhasil disimpan!\nFile disimpan di: Downloads/$fileName")
+                    openPdfFileFromUri(fileUri)
+                }
+            } ?: run {
+                showError("Gagal membuat file PDF")
+            }
+        } catch (e: Exception) {
+            Log.e("PDF Export", "Error with MediaStore", e)
+            showError("Gagal mengekspor PDF: ${e.message}")
+        }
+    }
+
+    private fun exportToLegacyStorage(transactions: List<Transaction>, fileName: String) {
+        try {
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            
+            if (!downloadsDir.exists()) {
+                downloadsDir.mkdirs()
+            }
+            
             val file = File(downloadsDir, fileName)
 
             // Initialize PDF writer and document
@@ -156,58 +252,59 @@ class TransactionListFragment : Fragment() {
             val pdfDocument = PdfDocument(pdfWriter)
             val document = Document(pdfDocument)
 
-            // Add title
-            document.add(
-                Paragraph("LAPORAN TRANSAKSI PERPUSTAKAAN")
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setFontSize(16f)
-                    .setBold()
-            )
-
-            // Add date
-            val currentDate = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(Date())
-            document.add(
-                Paragraph("Tanggal: $currentDate")
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setFontSize(12f)
-            )
-
-            document.add(Paragraph("\n"))
-
-            // Create table with 6 columns
-            val table = Table(6)
-            table.setWidth(100f)
-
-            // Add table headers
-            table.addCell(Paragraph("Nama Peminjam").setBold())
-            table.addCell(Paragraph("Judul Buku").setBold())
-            table.addCell(Paragraph("Pengarang").setBold())
-            table.addCell(Paragraph("Tanggal Pinjam").setBold())
-            table.addCell(Paragraph("Tanggal Kembali").setBold())
-            table.addCell(Paragraph("Status").setBold())
-
-            // Add transaction data
-            transactions.forEach { transaction ->
-                table.addCell(Paragraph(transaction.nameUser))
-                table.addCell(Paragraph(transaction.title))
-                table.addCell(Paragraph(transaction.author))
-                table.addCell(Paragraph(transaction.borrowDate))
-                table.addCell(Paragraph(transaction.returnDate))
-                table.addCell(Paragraph(transaction.status))
-            }
-
-            document.add(table)
+            generatePdfContent(document, transactions)
             document.close()
 
-            // Show success message
-            showToast("Laporan PDF berhasil disimpan")
-
-            // Open the PDF file
+            showToast("Laporan PDF berhasil disimpan!\nFile disimpan di: Downloads/$fileName")
             openPdfFile(file)
         } catch (e: IOException) {
-            Log.e("PDF Export", "Error exporting PDF", e)
+            Log.e("PDF Export", "Error with legacy storage", e)
             showError("Gagal mengekspor PDF: ${e.message}")
         }
+    }
+
+    private fun generatePdfContent(document: Document, transactions: List<Transaction>) {
+        // Add title
+        document.add(
+            Paragraph("LAPORAN TRANSAKSI PERPUSTAKAAN")
+                .setTextAlignment(TextAlignment.CENTER)
+                .setFontSize(16f)
+                .setBold()
+        )
+
+        // Add date
+        val currentDate = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(Date())
+        document.add(
+            Paragraph("Tanggal: $currentDate")
+                .setTextAlignment(TextAlignment.CENTER)
+                .setFontSize(12f)
+        )
+
+        document.add(Paragraph("\n"))
+
+        // Create table with 6 columns
+        val table = Table(6)
+        table.setWidth(100f)
+
+        // Add table headers
+        table.addCell(Paragraph("Nama Peminjam").setBold())
+        table.addCell(Paragraph("Judul Buku").setBold())
+        table.addCell(Paragraph("Pengarang").setBold())
+        table.addCell(Paragraph("Tanggal Pinjam").setBold())
+        table.addCell(Paragraph("Tanggal Kembali").setBold())
+        table.addCell(Paragraph("Status").setBold())
+
+        // Add transaction data
+        transactions.forEach { transaction ->
+            table.addCell(Paragraph(transaction.nameUser))
+            table.addCell(Paragraph(transaction.title))
+            table.addCell(Paragraph(transaction.author))
+            table.addCell(Paragraph(transaction.borrowDate))
+            table.addCell(Paragraph(transaction.returnDate))
+            table.addCell(Paragraph(transaction.status))
+        }
+
+        document.add(table)
     }
 
     private fun openPdfFile(file: File) {
@@ -217,6 +314,20 @@ class TransactionListFragment : Fragment() {
             file
         )
 
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/pdf")
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NO_HISTORY
+        }
+
+        // Verify that there's an app to handle the intent
+        if (intent.resolveActivity(requireContext().packageManager) != null) {
+            startActivity(intent)
+        } else {
+            showToast("Tidak ada aplikasi untuk membuka PDF")
+        }
+    }
+
+    private fun openPdfFileFromUri(uri: Uri) {
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, "application/pdf")
             flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NO_HISTORY
@@ -271,6 +382,26 @@ class TransactionListFragment : Fragment() {
         binding.tvEmpty.text = message
         binding.tvEmpty.visibility = View.VISIBLE
         binding.progressBar.visibility = View.GONE
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        
+        when (requestCode) {
+            STORAGE_PERMISSION_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission granted, try export again
+                    exportToPdf()
+                } else {
+                    // Permission denied
+                    showToast("Izin penyimpanan diperlukan untuk mengekspor PDF")
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
