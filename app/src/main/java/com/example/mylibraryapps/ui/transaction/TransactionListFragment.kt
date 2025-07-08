@@ -1,5 +1,6 @@
 package com.example.mylibraryapps.ui.transaction
 
+import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -42,9 +44,20 @@ class TransactionListFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var adapter: TransactionAdapter
     private lateinit var viewModel: TransactionViewModel
+    private var pendingTransactions: List<Transaction>? = null
     
     companion object {
         private const val STORAGE_PERMISSION_CODE = 100
+    }
+    
+    // Activity result launcher for file picker
+    private val createDocumentLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
+        uri?.let {
+            pendingTransactions?.let { transactions ->
+                exportToChosenLocation(transactions, it)
+            }
+        }
+        pendingTransactions = null
     }
 
     override fun onCreateView(
@@ -82,7 +95,7 @@ class TransactionListFragment : Fragment() {
                     true
                 }
                 R.id.action_export_pdf -> {
-                    exportToPdf()
+                    showExportOptions()
                     true
                 }
                 else -> false
@@ -99,10 +112,10 @@ class TransactionListFragment : Fragment() {
     private fun showExportOptions() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Ekspor Data")
-            .setItems(arrayOf("Export PDF")) { _, which ->
+            .setItems(arrayOf("Export PDF - Pilih Lokasi", "Export PDF - Otomatis ke Downloads")) { _, which ->
                 when (which) {
-                    0 -> exportToPdf()
-                    1 -> binding.toolbar.showOverflowMenu()
+                    0 -> exportToPdfWithLocationPicker()
+                    1 -> exportToPdf()
                 }
             }
             .show()
@@ -144,6 +157,51 @@ class TransactionListFragment : Fragment() {
                 adapter.submitList(sortedList)
                 binding.tvEmpty.visibility = View.GONE
             }
+        }
+    }
+
+    private fun exportToPdfWithLocationPicker() {
+        val transactions = viewModel.transactions.value ?: emptyList()
+        
+        if (transactions.isEmpty()) {
+            showToast("Tidak ada data transaksi untuk diekspor")
+            return
+        }
+        
+        // Store transactions temporarily
+        pendingTransactions = transactions
+        
+        // Create filename with timestamp
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val fileName = "LaporanTransaksi_$timeStamp.pdf"
+        
+        // Launch file picker
+        createDocumentLauncher.launch(fileName)
+    }
+
+    private fun exportToChosenLocation(transactions: List<Transaction>, uri: Uri) {
+        try {
+            binding.progressBar.visibility = View.VISIBLE
+            
+            requireContext().contentResolver.openOutputStream(uri)?.use { outputStream ->
+                val pdfWriter = PdfWriter(outputStream)
+                val pdfDocument = PdfDocument(pdfWriter)
+                val document = Document(pdfDocument)
+
+                generatePdfContent(document, transactions)
+                document.close()
+
+                showToast("Laporan PDF berhasil disimpan di lokasi yang dipilih!")
+                openPdfFileFromUri(uri)
+            } ?: run {
+                showError("Gagal membuka file untuk menulis")
+            }
+            
+        } catch (e: Exception) {
+            Log.e("PDF Export", "Error exporting to chosen location", e)
+            showError("Gagal mengekspor PDF: ${e.message}")
+        } finally {
+            binding.progressBar.visibility = View.GONE
         }
     }
 
