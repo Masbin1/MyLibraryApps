@@ -61,6 +61,8 @@ class HomeFragment : Fragment() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
             homeViewModel.loadUserData(currentUser.uid)
+            // Load notifications untuk show badge count
+            notificationViewModel.loadNotifications(currentUser.uid)
         }
     }
 
@@ -282,6 +284,9 @@ class HomeFragment : Fragment() {
         // Mark notification as read
         notificationViewModel.markAsRead(notification.id)
         
+        // Close popup first
+        notificationPopup?.dismiss()
+        
         // Handle navigation based on notification type
         when (notification.type) {
             "return_reminder", "overdue" -> {
@@ -293,14 +298,25 @@ class HomeFragment : Fragment() {
                     // For now, just show a message
                     com.google.android.material.snackbar.Snackbar.make(
                         binding.root,
-                        "Navigating to transaction: ${notification.relatedItemTitle}",
+                        "Buku: ${notification.relatedItemTitle}",
+                        com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+                    ).show()
+                } else {
+                    // Show notification message
+                    com.google.android.material.snackbar.Snackbar.make(
+                        binding.root,
+                        notification.message,
                         com.google.android.material.snackbar.Snackbar.LENGTH_LONG
                     ).show()
                 }
             }
             else -> {
-                // For other notification types, just dismiss the popup
-                notificationPopup?.dismiss()
+                // Show notification message for other types
+                com.google.android.material.snackbar.Snackbar.make(
+                    binding.root,
+                    notification.message,
+                    com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+                ).show()
             }
         }
     }
