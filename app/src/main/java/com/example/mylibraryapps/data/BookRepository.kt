@@ -272,4 +272,101 @@ class BookRepository {
             onFailure(e)
         }
     }
+    
+    /**
+     * Update book dengan cover baru
+     */
+    fun updateBookWithCover(
+        bookId: String,
+        imageUri: Uri,
+        updatedBook: Book,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit,
+        onProgress: (Int) -> Unit
+    ) {
+        try {
+            Log.d(TAG, "Memulai update book dengan cover baru: $imageUri")
+            
+            // Buat referensi storage
+            val storage = FirebaseStorage.getInstance()
+            val storageRef = try {
+                storage.reference
+            } catch (e: Exception) {
+                Log.e(TAG, "Error membuat storage reference, coba dengan URL eksplisit", e)
+                FirebaseStorage.getInstance("gs://mylibraryappsskripsi.firebasestorage.app").reference
+            }
+            
+            // Buat nama file unik untuk gambar
+            val timeStamp = System.currentTimeMillis()
+            val fileName = "book_covers/cover_${timeStamp}.jpg"
+            val fileRef = storageRef.child(fileName)
+            
+            Log.d(TAG, "Uploading new cover image...")
+            
+            // Upload gambar baru
+            val uploadTask = fileRef.putFile(imageUri)
+            
+            uploadTask.addOnProgressListener { taskSnapshot ->
+                val progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount).toInt()
+                onProgress(progress)
+            }
+            
+            uploadTask.addOnSuccessListener { taskSnapshot ->
+                Log.d(TAG, "Cover image uploaded successfully")
+                
+                // Dapatkan download URL
+                fileRef.downloadUrl.addOnSuccessListener { uri ->
+                    Log.d(TAG, "Download URL obtained: $uri")
+                    
+                    // Update book dengan cover URL baru
+                    val bookWithCover = updatedBook.copy(coverUrl = uri.toString())
+                    
+                    // Update book di Firestore
+                    db.collection("books").document(bookId)
+                        .set(bookWithCover)
+                        .addOnSuccessListener {
+                            Log.d(TAG, "Book updated successfully with new cover")
+                            onSuccess()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e(TAG, "Failed to update book in Firestore", e)
+                            onFailure(e)
+                        }
+                        
+                }.addOnFailureListener { e ->
+                    Log.e(TAG, "Failed to get download URL", e)
+                    onFailure(e)
+                }
+                
+            }.addOnFailureListener { e ->
+                Log.e(TAG, "Failed to upload cover image", e)
+                onFailure(e)
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception in updateBookWithCover", e)
+            onFailure(e)
+        }
+    }
+    
+    /**
+     * Update book tanpa mengubah cover
+     */
+    fun updateBook(
+        bookId: String,
+        updatedBook: Book,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("books").document(bookId)
+            .set(updatedBook)
+            .addOnSuccessListener {
+                Log.d(TAG, "Book updated successfully")
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Failed to update book", e)
+                onFailure(e)
+            }
+    }
 }
