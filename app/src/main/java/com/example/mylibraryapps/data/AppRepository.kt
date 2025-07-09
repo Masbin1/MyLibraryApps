@@ -144,29 +144,112 @@ class AppRepository {
         // Return cached data immediately if available
         if (cachedBooks.isNotEmpty()) {
             _books.value = cachedBooks
+            Log.d(TAG, "Returning cached books: ${cachedBooks.size} items")
         }
+        
+        Log.d(TAG, "Loading books from Firebase...")
         
         db.collection("books")
             .get()
             .addOnSuccessListener { result ->
+                Log.d(TAG, "Firebase query successful. Documents found: ${result.documents.size}")
+                
                 val booksList = result.documents.mapNotNull { doc ->
                     try {
+                        Log.d(TAG, "Processing document: ${doc.id}")
                         // Ambil data buku dan pastikan ID dan coverUrl disertakan
                         val book = doc.toObject(Book::class.java)
                         val coverUrl = doc.getString("coverUrl") ?: ""
-                        book?.copy(id = doc.id, coverUrl = coverUrl)
+                        
+                        if (book != null) {
+                            Log.d(TAG, "Book parsed successfully: ${book.title}")
+                            book.copy(id = doc.id, coverUrl = coverUrl)
+                        } else {
+                            Log.w(TAG, "Book is null for document: ${doc.id}")
+                            null
+                        }
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing book ${doc.id}", e)
                         null
                     }
                 }
                 
+                Log.d(TAG, "Successfully parsed ${booksList.size} books")
+                
                 cachedBooks = booksList
                 _books.value = booksList
                 _isLoading.value = false
             }
             .addOnFailureListener { e ->
+                Log.e(TAG, "Error loading books from Firebase", e)
                 _errorMessage.value = FirestoreErrorHandler.handleException(e, "mengakses data buku", TAG)
+                _isLoading.value = false
+            }
+    }
+    
+    /**
+     * Force load all books from Firestore (ignoring cache)
+     */
+    fun forceLoadBooks() {
+        _isLoading.value = true
+        
+        Log.d(TAG, "Force loading books from Firebase (ignoring cache)...")
+        
+        // Check authentication status first
+        val currentUser = auth.currentUser
+        Log.d(TAG, "Current user: ${currentUser?.uid}")
+        
+        db.collection("books")
+            .get()
+            .addOnSuccessListener { result ->
+                Log.d(TAG, "Firebase query successful. Documents found: ${result.documents.size}")
+                
+                if (result.documents.isEmpty()) {
+                    Log.w(TAG, "No documents found in books collection!")
+                    _errorMessage.value = "Tidak ada buku yang ditemukan di Firebase"
+                }
+                
+                val booksList = result.documents.mapNotNull { doc ->
+                    try {
+                        Log.d(TAG, "Processing document: ${doc.id}")
+                        Log.d(TAG, "Document data: ${doc.data}")
+                        
+                        // Ambil data buku dan pastikan ID dan coverUrl disertakan
+                        val book = doc.toObject(Book::class.java)
+                        val coverUrl = doc.getString("coverUrl") ?: ""
+                        
+                        if (book != null) {
+                            Log.d(TAG, "Book parsed successfully: ${book.title}")
+                            book.copy(id = doc.id, coverUrl = coverUrl)
+                        } else {
+                            Log.w(TAG, "Book is null for document: ${doc.id}")
+                            null
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing book ${doc.id}", e)
+                        null
+                    }
+                }
+                
+                Log.d(TAG, "Successfully parsed ${booksList.size} books")
+                
+                cachedBooks = booksList
+                _books.value = booksList
+                _isLoading.value = false
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error loading books from Firebase", e)
+                when {
+                    e.message?.contains("permission-denied") == true -> {
+                        _errorMessage.value = "Akses ditolak. Periksa Firebase Security Rules"
+                    }
+                    e.message?.contains("unavailable") == true -> {
+                        _errorMessage.value = "Firebase tidak dapat diakses. Periksa koneksi internet"
+                    }
+                    else -> {
+                        _errorMessage.value = FirestoreErrorHandler.handleException(e, "mengakses data buku", TAG)
+                    }
+                }
                 _isLoading.value = false
             }
     }
@@ -632,5 +715,40 @@ class AppRepository {
      */
     fun clearErrorMessage() {
         _errorMessage.value = null
+    }
+    
+    /**
+     * Check Firebase connection and collection access
+     */
+    fun checkFirebaseConnection() {
+        Log.d(TAG, "Checking Firebase connection...")
+        
+        val currentUser = auth.currentUser
+        Log.d(TAG, "Current user: ${currentUser?.uid}")
+        
+        // Try to access the books collection with count
+        db.collection("books")
+            .limit(1)
+            .get()
+            .addOnSuccessListener { result ->
+                Log.d(TAG, "Firebase connection successful!")
+                Log.d(TAG, "Can access books collection: ${result.size()} documents")
+                
+                // Now try to get actual count
+                db.collection("books")
+                    .get()
+                    .addOnSuccessListener { fullResult ->
+                        Log.d(TAG, "Total books in Firebase: ${fullResult.size()}")
+                        _errorMessage.value = "Firebase connection OK. Total books: ${fullResult.size()}"
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "Error getting full count", e)
+                        _errorMessage.value = "Error getting full count: ${e.message}"
+                    }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Firebase connection failed", e)
+                _errorMessage.value = "Firebase connection failed: ${e.message}"
+            }
     }
 }

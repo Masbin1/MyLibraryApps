@@ -55,6 +55,7 @@ class HomeFragment : Fragment() {
         setupFilterButtons()
         setupAddBookButton()
         setupNotificationButton()
+        setupDebugFeatures()
         
         // Dapatkan user ID dari Firebase Auth
         val currentUser = FirebaseAuth.getInstance().currentUser
@@ -103,6 +104,10 @@ class HomeFragment : Fragment() {
     private fun setupObservers() {
         homeViewModel.books.observe(viewLifecycleOwner) { books ->
             books?.let {
+                Log.d("HomeFragment", "Books received: ${it.size} items")
+                it.forEachIndexed { index, book ->
+                    Log.d("HomeFragment", "Book $index: ${book.title}")
+                }
                 bookAdapter.updateBooks(it)
             }
         }
@@ -313,6 +318,48 @@ class HomeFragment : Fragment() {
 
         }
 
+    }
+    
+    private fun setupDebugFeatures() {
+        // Long press pada progress bar untuk force refresh
+        binding.progressBar.setOnLongClickListener {
+            Log.d("HomeFragment", "Force refreshing data...")
+            homeViewModel.forceRefreshData()
+            com.google.android.material.snackbar.Snackbar.make(
+                binding.root,
+                "Force refresh data...",
+                com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
+            ).show()
+            true
+        }
+        
+        // Long press pada greeting untuk refresh
+        binding.tvGreeting.setOnLongClickListener {
+            Log.d("HomeFragment", "Refreshing data...")
+            homeViewModel.refreshData()
+            com.google.android.material.snackbar.Snackbar.make(
+                binding.root,
+                "Refreshing data...",
+                com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
+            ).show()
+            true
+        }
+        
+        // Double tap pada recyclerview untuk check Firebase connection
+        var lastTapTime: Long = 0
+        binding.rvBooks.setOnClickListener {
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastTapTime < 500) {
+                Log.d("HomeFragment", "Checking Firebase connection...")
+                homeViewModel.checkFirebaseConnection()
+                com.google.android.material.snackbar.Snackbar.make(
+                    binding.root,
+                    "Checking Firebase connection...",
+                    com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
+                ).show()
+            }
+            lastTapTime = currentTime
+        }
     }
 
 

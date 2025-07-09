@@ -38,7 +38,18 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun refreshData() {
+        Log.d("HomeViewModel", "Refreshing data...")
         repository.loadBooks()
+    }
+    
+    fun forceRefreshData() {
+        Log.d("HomeViewModel", "Force refreshing data...")
+        repository.forceLoadBooks()
+    }
+    
+    fun checkFirebaseConnection() {
+        Log.d("HomeViewModel", "Checking Firebase connection...")
+        repository.checkFirebaseConnection()
     }
 
     fun loadUserData(userId: String) {

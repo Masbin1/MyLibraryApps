@@ -1,5 +1,6 @@
 package com.example.mylibraryapps.ui.book
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +16,7 @@ class BookAdapter(
 ) : RecyclerView.Adapter<BookAdapter.BookViewHolder>() {
 
     fun updateBooks(newBooks: List<Book>) {
+        Log.d("BookAdapter", "Updating books: ${newBooks.size} items")
         books = newBooks
         notifyDataSetChanged()
     }
