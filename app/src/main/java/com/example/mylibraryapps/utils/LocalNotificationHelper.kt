@@ -99,4 +99,43 @@ class LocalNotificationHelper(private val context: Context) {
         
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
+    
+    fun showSystemNotification(title: String, message: String, data: Map<String, String>) {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            // Add data to intent if needed
+            data.forEach { (key, value) ->
+                putExtra(key, value)
+            }
+        }
+        
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            System.currentTimeMillis().toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        
+        // Determine notification icon based on type
+        val notificationIcon = when (data["type"]) {
+            "return_reminder" -> "📚"
+            "overdue" -> "⚠️"
+            else -> "📱"
+        }
+        
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("$notificationIcon $title")
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setSound(android.provider.Settings.System.DEFAULT_NOTIFICATION_URI)
+            .setVibrate(longArrayOf(1000, 1000, 1000, 1000, 1000))
+            .build()
+        
+        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+    }
 }

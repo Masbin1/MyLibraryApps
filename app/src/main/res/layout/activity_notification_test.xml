@@ -35,6 +35,14 @@
             android:layout_marginBottom="8dp" />
 
         <Button
+            android:id="@+id/btnTestSystemNotification"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📲 Test System Notification (Android Bar)"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="@color/purple_primary" />
+
+        <Button
             android:id="@+id/btnUpdateFCMToken"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -206,11 +206,14 @@ class PushNotificationHelper(private val context: Context? = null) {
             // Note: Direct FCM sending from client is not recommended for production
             // This is for demonstration. In production, use a backend server to send notifications
             
-            // For now, we'll just log the notification
-            Log.d(TAG, "Would send notification to token: $token")
+            // For now, we'll show local notification for testing
+            Log.d(TAG, "Sending local notification instead of FCM")
             Log.d(TAG, "Title: $title")
             Log.d(TAG, "Body: $body")
             Log.d(TAG, "Data: $data")
+            
+            // Show system notification (Android notification bar)
+            localNotificationHelper?.showSystemNotification(title, body, data)
             
             // In production, send this data to your backend server
             // which will then send the push notification using FCM Admin SDK

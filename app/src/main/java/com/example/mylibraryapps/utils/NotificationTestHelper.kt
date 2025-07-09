@@ -33,6 +33,82 @@ class NotificationTestHelper(private val context: Context) {
         WorkManager.getInstance(context).enqueue(immediateWork)
         
         Log.d(TAG, "Immediate notification work enqueued")
+        
+        // Also show a test system notification immediately
+        showTestSystemNotification()
+    }
+    
+    /**
+     * Show test system notification immediately
+     */
+    private fun showTestSystemNotification() {
+        val localNotificationHelper = LocalNotificationHelper(context)
+        
+        val title = "📚 Test Notification"
+        val message = "Ini adalah test notifikasi sistem yang akan muncul di notification bar Android"
+        val data = mapOf(
+            "type" to "test",
+            "title" to title,
+            "body" to message
+        )
+        
+        localNotificationHelper.showSystemNotification(title, message, data)
+        Log.d(TAG, "Test system notification shown")
+    }
+    
+    /**
+     * Test system notification directly (for button click)
+     */
+    fun testSystemNotificationDirect() {
+        val localNotificationHelper = LocalNotificationHelper(context)
+        
+        val title = "📲 MyLibrary App"
+        val message = "Notifikasi ini muncul di notification bar Android seperti WhatsApp! 🎉"
+        val data = mapOf(
+            "type" to "system_test",
+            "title" to title,
+            "body" to message,
+            "timestamp" to System.currentTimeMillis().toString()
+        )
+        
+        localNotificationHelper.showSystemNotification(title, message, data)
+        Log.d(TAG, "Direct system notification sent to Android notification bar")
+        
+        // Show multiple notifications for testing
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            // Show a reminder notification
+            val reminderData = mapOf(
+                "type" to "return_reminder",
+                "title" to "📚 Reminder: 2 Hari Lagi",
+                "body" to "Jangan lupa kembalikan buku 'Android Development' dalam 2 hari",
+                "bookTitle" to "Android Development",
+                "daysRemaining" to "2"
+            )
+            
+            localNotificationHelper.showSystemNotification(
+                "📚 Reminder: 2 Hari Lagi",
+                "Jangan lupa kembalikan buku 'Android Development' dalam 2 hari",
+                reminderData
+            )
+            
+            // Show an overdue notification
+            val overdueData = mapOf(
+                "type" to "overdue",
+                "title" to "⚠️ Buku Terlambat",
+                "body" to "Buku 'Kotlin Programming' sudah terlambat 1 hari. Segera kembalikan!",
+                "bookTitle" to "Kotlin Programming",
+                "daysOverdue" to "1"
+            )
+            
+            localNotificationHelper.showSystemNotification(
+                "⚠️ Buku Terlambat",
+                "Buku 'Kotlin Programming' sudah terlambat 1 hari. Segera kembalikan!",
+                overdueData
+            )
+        }
+        
+        Log.d(TAG, "Multiple test notifications sent")
     }
     
     /**

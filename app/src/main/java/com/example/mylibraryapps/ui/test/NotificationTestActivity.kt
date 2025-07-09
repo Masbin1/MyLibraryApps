@@ -29,6 +29,11 @@ class NotificationTestActivity : AppCompatActivity() {
             Toast.makeText(this, "Immediate notification check started", Toast.LENGTH_SHORT).show()
         }
         
+        findViewById<Button>(R.id.btnTestSystemNotification).setOnClickListener {
+            testHelper.testSystemNotificationDirect()
+            Toast.makeText(this, "System notification sent to Android bar!", Toast.LENGTH_SHORT).show()
+        }
+        
         findViewById<Button>(R.id.btnCreate3DayTest).setOnClickListener {
             lifecycleScope.launch {
                 testTransactionId = testHelper.createTestTransaction(3)
