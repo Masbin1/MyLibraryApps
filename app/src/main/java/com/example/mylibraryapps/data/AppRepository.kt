@@ -151,7 +151,10 @@ class AppRepository {
             .addOnSuccessListener { result ->
                 val booksList = result.documents.mapNotNull { doc ->
                     try {
-                        doc.toObject(Book::class.java)?.copy(id = doc.id)
+                        // Ambil data buku dan pastikan ID dan coverUrl disertakan
+                        val book = doc.toObject(Book::class.java)
+                        val coverUrl = doc.getString("coverUrl") ?: ""
+                        book?.copy(id = doc.id, coverUrl = coverUrl)
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing book ${doc.id}", e)
                         null

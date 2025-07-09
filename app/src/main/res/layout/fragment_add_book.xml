@@ -60,6 +60,7 @@
 
             <!-- Cover -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardCover"
                 android:layout_width="120dp"
                 android:layout_height="160dp"
                 android:layout_gravity="center_horizontal"
@@ -69,27 +70,60 @@
                 app:strokeColor="#11000000"
                 app:strokeWidth="1dp">
 
-                <LinearLayout
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/white"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
+                    android:layout_height="match_parent">
+                    
                     <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/ic_add_photo"
-                        android:tint="#9E9E9E" />
+                        android:id="@+id/ivBookCover"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop" />
+                    
+                    <LinearLayout
+                        android:id="@+id/layoutAddCover"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/white"
+                        android:gravity="center"
+                        android:orientation="vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Tambahkan Cover"
-                        android:textColor="#9E9E9E"
-                        android:textSize="12sp" />
-                </LinearLayout>
+                        <ImageView
+                            android:id="@+id/ivAddPhoto"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/ic_add_photo"
+                            app:tint="#9E9E9E" />
+
+                        <TextView
+                            android:id="@+id/tvAddCover"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="Tambahkan Cover"
+                            android:textColor="#9E9E9E"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    
+                    <!-- Overlay untuk menunjukkan gambar sudah dipilih -->
+                    <View
+                        android:id="@+id/overlay"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="#40000000"
+                        android:visibility="gone" />
+                        
+                    <!-- Icon untuk menunjukkan gambar bisa diklik -->
+                    <ImageView
+                        android:id="@+id/ivEditIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="8dp"
+                        android:src="@drawable/ic_edit"
+                        android:visibility="gone"
+                        app:tint="@color/white" />
+                </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Form Fields -->
@@ -318,16 +352,28 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Submit Button -->
-            <Button
-                android:id="@+id/btnAddBook"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="24dp"
-                android:background="@drawable/bg_rounded_card"
-                android:text="Tambah Buku"
-                android:textAllCaps="false"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp">
+                
+                <Button
+                    android:id="@+id/btnAddBook"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_rounded_card"
+                    android:text="Tambah Buku"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp" />
+                    
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+            </FrameLayout>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -15,4 +15,16 @@
     <string name="tambahkan_deskripsi">Tambahkan Deskripsi</string>
     <string name="tambah_buku">Tambah Buku</string>
     <string name="back">Kembali</string>
+    
+    <!-- Image upload strings -->
+    <string name="tambahkan_cover">Tambahkan Cover</string>
+    <string name="cover_berhasil_dipilih">Cover buku berhasil dipilih</string>
+    <string name="cover_dihapus">Cover buku dihapus</string>
+    <string name="ganti_gambar">Ganti Gambar</string>
+    <string name="hapus_gambar">Hapus Gambar</string>
+    <string name="batal">Batal</string>
+    <string name="pilih_aksi">Pilih Aksi</string>
+    <string name="permission_galeri">Permission diperlukan untuk mengakses galeri</string>
+    <string name="format_gambar_tidak_didukung">Format gambar tidak didukung. Pilih gambar JPG, PNG, atau WEBP</string>
+    <string name="ukuran_gambar_terlalu_besar">Ukuran gambar terlalu besar (maksimal 5MB)</string>
 </resources>
