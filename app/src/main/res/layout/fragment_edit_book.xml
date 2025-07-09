@@ -1,137 +1,276 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="#FFFFFF"
+    android:padding="24dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <!-- Judul Buku -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Judul Buku"
+            android:textColor="#000000"
+            android:textSize="14sp" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="12dp"
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#AAAAAA">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Judul Buku" />
+                android:hint=""
+                android:textColor="#000000"
+                android:textColorHint="#888888" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Penulis -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Penulis"
+            android:textColor="#000000"
+            android:textSize="14sp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="12dp"
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#AAAAAA">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etAuthor"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Penulis" />
+                android:hint=""
+                android:textColor="#000000"
+                android:textColorHint="#888888" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Penerbit -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Penerbit"
+            android:textColor="#000000"
+            android:textSize="14sp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="12dp"
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#AAAAAA">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etPublisher"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Penerbit" />
+                android:hint=""
+                android:textColor="#000000"
+                android:textColorHint="#888888" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Tanggal Pembelian -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Tanggal Pembelian (DD/MM/YYYY)"
+            android:textColor="#000000"
+            android:textSize="14sp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="12dp"
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#AAAAAA">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etPurchaseDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Tanggal Pembelian (DD/MM/YYYY)"
                 android:focusable="false"
-                android:inputType="none" />
+                android:hint=""
+                android:inputType="none"
+                android:textColor="#000000"
+                android:textColorHint="#888888" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Spesifikasi -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Spesifikasi"
+            android:textColor="#000000"
+            android:textSize="14sp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="12dp"
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#AAAAAA">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etSpecifications"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Spesifikasi" />
+                android:hint=""
+                android:textColor="#000000"
+                android:textColorHint="#888888" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Material -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Material"
+            android:textColor="#000000"
+            android:textSize="14sp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="12dp"
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#AAAAAA">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etMaterial"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Material" />
+                android:hint=""
+                android:textColor="#000000"
+                android:textColorHint="#888888" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Jumlah -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Jumlah"
+            android:textColor="#000000"
+            android:textSize="14sp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="12dp"
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#AAAAAA">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etQuantity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Jumlah"
-                android:inputType="number" />
+                android:hint=""
+                android:inputType="number"
+                android:textColor="#000000"
+                android:textColorHint="#888888" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Genre -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Genre"
+            android:textColor="#000000"
+            android:textSize="14sp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="24dp"
+            app:boxBackgroundMode="outline"
+            app:boxStrokeColor="#AAAAAA">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etGenre"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Genre" />
+                android:hint=""
+                android:textColor="#000000"
+                android:textColorHint="#888888" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
 
+            <!-- Tombol Batal -->
             <Button
                 android:id="@+id/btnCancel"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginEnd="8dp"
-                android:text="Batal" />
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_red"
+                android:text="Batal"
+                android:textColor="#FFFFFF" />
 
+            <!-- Tombol Simpan -->
             <Button
                 android:id="@+id/btnSave"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_purple"
                 android:text="Simpan"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+                android:textColor="#FFFFFF" />
+
         </LinearLayout>
     </LinearLayout>
 </ScrollView>
