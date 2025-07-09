@@ -1,75 +1,73 @@
 package com.example.mylibraryapps.ui.notification
 
-import android.app.Application
-import android.util.Log
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import com.example.mylibraryapps.MyLibraryApplication
-import com.example.mylibraryapps.data.AppRepository
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.mylibraryapps.data.NotificationRepository
 import com.example.mylibraryapps.model.Notification
-import com.google.firebase.auth.FirebaseAuth
+import com.example.mylibraryapps.service.NotificationService
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
 
-class NotificationViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: AppRepository = (application as MyLibraryApplication).repository
-    private val auth = FirebaseAuth.getInstance()
+class NotificationViewModel : ViewModel() {
+    private val notificationRepository = NotificationRepository()
+    private val notificationService = NotificationService()
     
-    // Expose repository LiveData
-    val notifications: LiveData<List<Notification>> = repository.notifications
-    val unreadCount: LiveData<Int> = repository.unreadNotificationsCount
-    val isLoading: LiveData<Boolean> = repository.isLoading
+    private val _notifications = MutableLiveData<List<Notification>>()
+    val notifications: LiveData<List<Notification>> = _notifications
     
-    init {
-        refreshNotifications()
-    }
+    private val _unreadCount = MutableLiveData<Int>()
+    val unreadCount: LiveData<Int> = _unreadCount
     
-    fun refreshNotifications() {
-        val currentUser = auth.currentUser ?: return
-        repository.loadNotifications(currentUser.uid)
-    }
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
     
-    fun markAsRead(notification: Notification) {
-        repository.markNotificationAsRead(
-            notification.id,
-            onSuccess = {
-                Log.d("NotificationVM", "Notification marked as read: ${notification.id}")
-            },
-            onFailure = { e ->
-                Log.e("NotificationVM", "Failed to mark notification as read", e)
-            }
-        )
-    }
-    
-    fun markAllAsRead() {
-        repository.markAllNotificationsAsRead(
-            onSuccess = {
-                Log.d("NotificationVM", "All notifications marked as read")
-            },
-            onFailure = { e ->
-                Log.e("NotificationVM", "Failed to mark all notifications as read", e)
-            }
-        )
-    }
-    
-    fun createTestNotification() {
-        val currentUser = auth.currentUser ?: return
+    fun loadNotifications(userId: String) {
+        _isLoading.value = true
         
-        val notification = Notification(
-            userId = currentUser.uid,
-            title = "Test Notification",
-            message = "This is a test notification to verify the notification system is working.",
-            timestamp = java.util.Date(),
-            isRead = false,
-            type = "test"
-        )
-        
-        repository.createNotification(
-            notification,
-            onSuccess = {
-                Log.d("NotificationVM", "Test notification created")
-            },
-            onFailure = { e ->
-                Log.e("NotificationVM", "Failed to create test notification", e)
-            }
-        )
+        viewModelScope.launch {
+            // First, check for new notifications based on due dates
+            notificationService.checkNotificationsForUser(userId)
+            
+            // Then load all notifications for the user
+            notificationRepository.getNotifications(userId)
+                .catch { exception ->
+                    _isLoading.value = false
+                    // Handle error
+                }
+                .collect { notificationList ->
+                    _notifications.value = notificationList
+                    _unreadCount.value = notificationList.count { !it.isRead }
+                    _isLoading.value = false
+                }
+        }
+    }
+    
+    fun markAsRead(notificationId: String) {
+        viewModelScope.launch {
+            notificationRepository.markAsRead(notificationId)
+        }
+    }
+    
+    fun markAllAsRead(userId: String) {
+        viewModelScope.launch {
+            notificationRepository.markAllAsRead(userId)
+        }
+    }
+    
+    fun createTestNotification(userId: String) {
+        viewModelScope.launch {
+            val notification = Notification(
+                userId = userId,
+                title = "Test Notification",
+                message = "This is a test notification to verify the notification system is working.",
+                timestamp = java.util.Date(),
+                isRead = false,
+                type = "test"
+            )
+            
+            notificationRepository.addNotification(notification)
+        }
     }
 }

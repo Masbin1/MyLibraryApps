@@ -268,7 +268,10 @@ class HomeFragment : Fragment() {
         
         // Mark all as read button
         tvMarkAllRead.setOnClickListener {
-            notificationViewModel.markAllAsRead()
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            currentUser?.uid?.let { userId ->
+                notificationViewModel.markAllAsRead(userId)
+            }
         }
         
         // Show popup
@@ -277,7 +280,7 @@ class HomeFragment : Fragment() {
     
     private fun handleNotificationClick(notification: Notification) {
         // Mark notification as read
-        notificationViewModel.markAsRead(notification)
+        notificationViewModel.markAsRead(notification.id)
         
         // Handle navigation based on notification type
         when (notification.type) {
@@ -369,9 +372,5 @@ class HomeFragment : Fragment() {
         notificationPopup = null
         _binding = null
     }
-    
-    // For testing purposes - create a test notification
-    private fun createTestNotification() {
-        notificationViewModel.createTestNotification()
-    }
+
 }

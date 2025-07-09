@@ -3,4 +3,6 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="notification_badge_size">16dp</dimen>
+    <dimen name="notification_popup_width">350dp</dimen>
+    <dimen name="notification_popup_height">450dp</dimen>
 </resources>
