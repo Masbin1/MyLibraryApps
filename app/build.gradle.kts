@@ -57,6 +57,13 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.firestore)
     implementation(libs.glide)
+    
+    // Firebase Cloud Messaging
+    implementation("com.google.firebase:firebase-messaging-ktx:23.4.1")
+    
+    // WorkManager for scheduling notifications
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

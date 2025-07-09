@@ -2,6 +2,8 @@ package com.example.mylibraryapps
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -14,9 +16,11 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.mylibraryapps.data.AppRepository
 import com.example.mylibraryapps.databinding.ActivityMainBinding
 import com.example.mylibraryapps.ui.login.LoginActivity
+import com.example.mylibraryapps.ui.test.NotificationTestActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.auth.ktx.BuildConfig
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -33,7 +37,12 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
+        // Show action bar for menu access (only in debug mode)
+        if (BuildConfig.DEBUG) {
+            supportActionBar?.show()
+        } else {
+            supportActionBar?.hide()
+        }
 
         // Get repository from Application
         repository = (application as MyLibraryApplication).repository
@@ -51,6 +60,7 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
         setContentView(binding.root)
 
         setupNavigation()
+        setupDebugFeatures()
         
         // Observe repository error messages
         repository.errorMessage.observe(this) { errorMessage ->
@@ -121,6 +131,16 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
         }
     }
     
+    private fun setupDebugFeatures() {
+        // Show FAB only in debug mode
+        if (BuildConfig.DEBUG) {
+            binding.fabTestNotification.visibility = android.view.View.VISIBLE
+            binding.fabTestNotification.setOnClickListener {
+                startActivity(Intent(this, NotificationTestActivity::class.java))
+            }
+        }
+    }
+    
     private fun safeNavigate(destinationId: Int) {
         if (navController.currentDestination?.id != destinationId && !isNavigating) {
             isNavigating = true
@@ -166,5 +186,23 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
     
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
+    }
+    
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Add test menu only in debug mode
+        if (BuildConfig.DEBUG) {
+            menuInflater.inflate(R.menu.main_menu, menu)
+        }
+        return true
+    }
+    
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_test_notifications -> {
+                startActivity(Intent(this, NotificationTestActivity::class.java))
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }

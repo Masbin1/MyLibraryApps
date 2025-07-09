@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📱 Notification Test Center"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔍 Testing Controls"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnTestImmediate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🚀 Test Immediate Notification Check"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnUpdateFCMToken"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔄 Update FCM Token"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📚 Create Test Transactions"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnCreate3DayTest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📅 Create 3-Day Reminder Test"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnCreate2DayTest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📅 Create 2-Day Reminder Test"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnCreate1DayTest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📅 Create 1-Day Reminder Test"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnCreateTodayTest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📅 Create Today Reminder Test"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnCreateOverdueTest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⚠️ Create Overdue Test"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📊 Data Management"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnShowActiveTransactions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="👁️ Show Active Transactions (Check Logcat)"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnShowNotificationRecords"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📋 Show Notification Records (Check Logcat)"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnClearNotificationRecords"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🧹 Clear Notification Records"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnDeleteTestTransaction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🗑️ Delete Last Test Transaction"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📖 How to Test:"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="1. Update FCM Token first\n2. Create test transactions with different dates\n3. Run immediate notification check\n4. Check logcat for notification logs\n5. Clear notification records to test again\n6. Delete test transactions when done"
+            android:textSize="14sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="💡 Tips:\n• Check Android Logcat for detailed logs\n• Look for tags: NotificationTestHelper, PushNotificationHelper, FCMService\n• Notifications will appear in system notification panel\n• Test different scenarios by creating multiple transactions"
+            android:textSize="12sp"
+            android:alpha="0.7" />
+
+    </LinearLayout>
+
+</ScrollView>

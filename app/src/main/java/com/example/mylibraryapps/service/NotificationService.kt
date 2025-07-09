@@ -53,6 +53,10 @@ class NotificationService {
                 // 3 days before due date - create reminder
                 createReminderIfNotExists(transaction, returnDate, 3)
             }
+            daysDifference == 2 -> {
+                // 2 days before due date - create reminder
+                createReminderIfNotExists(transaction, returnDate, 2)
+            }
             daysDifference == 1 -> {
                 // 1 day before due date - create urgent reminder
                 createReminderIfNotExists(transaction, returnDate, 1)
@@ -73,6 +77,7 @@ class NotificationService {
         if (!reminderExists(transaction.userId, transaction.id, "return_reminder")) {
             val message = when (daysRemaining) {
                 3 -> "Buku \"${transaction.title}\" harus dikembalikan dalam 3 hari (${dateFormat.format(returnDate)})."
+                2 -> "Buku \"${transaction.title}\" harus dikembalikan dalam 2 hari (${dateFormat.format(returnDate)})."
                 1 -> "Buku \"${transaction.title}\" harus dikembalikan besok (${dateFormat.format(returnDate)})."
                 0 -> "Buku \"${transaction.title}\" harus dikembalikan hari ini (${dateFormat.format(returnDate)})."
                 else -> "Buku \"${transaction.title}\" harus dikembalikan dalam $daysRemaining hari (${dateFormat.format(returnDate)})."

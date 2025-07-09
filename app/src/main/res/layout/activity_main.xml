@@ -34,4 +34,16 @@
         app:navGraph="@navigation/mobile_navigation" />
     <!-- Height diubah menjadi 0dp dan diatur dengan constraint -->
 
+    <!-- Floating Action Button for testing (only visible in debug mode) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabTestNotification"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_notification"
+        android:contentDescription="Test Notifications"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/nav_view"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

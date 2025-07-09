@@ -11,8 +11,10 @@ import androidx.navigation.fragment.findNavController
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentAccountBinding
 import com.example.mylibraryapps.ui.login.LoginActivity
+import com.example.mylibraryapps.ui.test.NotificationTestActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.BuildConfig
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
@@ -36,6 +38,7 @@ class AccountFragment : Fragment() {
 
         setupClickListeners()
         loadUserData()
+        setupDebugFeatures()
     }
 
     private fun setupClickListeners() {
@@ -46,6 +49,12 @@ class AccountFragment : Fragment() {
         binding.btnLogout.setOnClickListener {
             showLogoutConfirmationDialog()
         }
+
+
+        binding.btnTestNotification.setOnClickListener {
+            startActivity(Intent(requireContext(), NotificationTestActivity::class.java))
+        }
+
     }
 
     private fun loadUserData() {
@@ -72,7 +81,8 @@ class AccountFragment : Fragment() {
                             if (kelas.isNotEmpty()) append("\nKelas: $kelas")
                         }
                     } else {
-                        binding.tvUserName.text = currentUser.email?.substringBefore("@") ?: "Pengguna"
+                        binding.tvUserName.text =
+                            currentUser.email?.substringBefore("@") ?: "Pengguna"
                     }
                 }
                 .addOnFailureListener {
@@ -86,7 +96,7 @@ class AccountFragment : Fragment() {
             "Keluar (tetap ingat akun)",
             "Keluar dan hapus data login"
         )
-        
+
         AlertDialog.Builder(requireContext())
             .setTitle("Keluar Akun")
             .setItems(options) { _, which ->
@@ -95,6 +105,7 @@ class AccountFragment : Fragment() {
                         // Logout biasa
                         performLogout()
                     }
+
                     1 -> {
                         // Logout dan hapus data login
                         performLogoutAndClearData()
@@ -104,39 +115,50 @@ class AccountFragment : Fragment() {
             .setNegativeButton("Batal", null)
             .show()
     }
-    
+
     private fun performLogout() {
         // Sign out dari Firebase
         auth.signOut()
-        
+
         // Kembali ke LoginActivity
         navigateToLogin()
     }
-    
+
     private fun performLogoutAndClearData() {
         // Sign out dari Firebase
         auth.signOut()
-        
+
         // Hapus data cache aplikasi
         try {
             // Hapus shared preferences yang mungkin menyimpan data login
             val sharedPrefs = requireActivity().getSharedPreferences("com.example.mylibraryapps", 0)
             sharedPrefs.edit().clear().apply()
-            
+
             // Hapus cache Firebase Authentication
             requireContext().getSharedPreferences("com.google.firebase.auth.api.Store", 0)
                 .edit().clear().apply()
-                
+
             // Hapus cache lainnya
             requireContext().cacheDir.deleteRecursively()
         } catch (e: Exception) {
             // Abaikan error
         }
-        
+
         // Kembali ke LoginActivity
         navigateToLogin()
     }
-    
+
+    private fun setupDebugFeatures() {
+        // Show debug features only in debug mode
+        if (BuildConfig.DEBUG) {
+            // Show test notification button in debug mode
+            binding.btnTestNotification.visibility = View.VISIBLE
+        } else {
+            // Hide test notification button in release mode
+            binding.btnTestNotification.visibility = View.VISIBLE
+        }
+    }
+
     private fun navigateToLogin() {
         // Clear semua activity dan kembali ke LoginActivity
         val intent = Intent(requireContext(), LoginActivity::class.java)

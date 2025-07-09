@@ -5,9 +5,12 @@ import android.widget.Toast
 import androidx.lifecycle.Observer
 import com.example.mylibraryapps.data.AppRepository
 import com.example.mylibraryapps.utils.NetworkMonitor
+import com.example.mylibraryapps.utils.NotificationScheduler
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.messaging.FirebaseMessaging
+import android.util.Log
 
 class MyLibraryApplication : Application() {
     
@@ -16,6 +19,9 @@ class MyLibraryApplication : Application() {
     
     // Network monitor
     lateinit var networkMonitor: NetworkMonitor
+    
+    // Notification scheduler
+    lateinit var notificationScheduler: NotificationScheduler
     
     override fun onCreate() {
         super.onCreate()
@@ -28,6 +34,12 @@ class MyLibraryApplication : Application() {
         
         // Initialize network monitor
         setupNetworkMonitoring()
+        
+        // Initialize FCM
+        setupFCM()
+        
+        // Initialize notification scheduler
+        setupNotificationScheduler()
         
         // Preload data
         repository.preloadData()
@@ -66,9 +78,44 @@ class MyLibraryApplication : Application() {
         }
     }
     
+    /**
+     * Setup Firebase Cloud Messaging
+     */
+    private fun setupFCM() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w("FCM", "Fetching FCM registration token failed", task.exception)
+                return@addOnCompleteListener
+            }
+            
+            // Get new FCM registration token
+            val token = task.result
+            Log.d("FCM", "FCM Registration Token: $token")
+            
+            // TODO: Send token to server if user is logged in
+            // This will be handled in the MyFirebaseMessagingService
+        }
+    }
+    
+    /**
+     * Setup notification scheduler
+     */
+    private fun setupNotificationScheduler() {
+        notificationScheduler = NotificationScheduler(this)
+        
+        // Schedule periodic notification checks
+        notificationScheduler.scheduleDailyNotificationCheck()
+        notificationScheduler.schedulePeriodicNotificationCheck()
+        
+        Log.d("NotificationScheduler", "Notification scheduling initialized")
+    }
+    
     override fun onTerminate() {
         super.onTerminate()
         // Stop network monitoring
         networkMonitor.stopMonitoring()
+        
+        // Cancel scheduled notifications
+        notificationScheduler.cancelAllScheduledWork()
     }
 }
