@@ -78,7 +78,8 @@
                         android:hint="Cari buku..."
                         android:inputType="text"
                         android:paddingStart="8dp"
-                        android:textColorHint="#000000" />
+                        android:textColor="#000000"
+                        android:textColorHint="#666666" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

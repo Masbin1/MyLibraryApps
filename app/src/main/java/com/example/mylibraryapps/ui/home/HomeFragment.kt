@@ -34,6 +34,7 @@ class HomeFragment : Fragment() {
     private lateinit var notificationAdapter: NotificationAdapter
     private var notificationPopup: PopupWindow? = null
     private var notificationBadge: FrameLayout? = null
+    private var searchTimer: android.os.CountDownTimer? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,6 +56,7 @@ class HomeFragment : Fragment() {
         setupFilterButtons()
         setupAddBookButton()
         setupNotificationButton()
+        setupSearchBar()
         setupDebugFeatures()
         
         // Dapatkan user ID dari Firebase Auth
@@ -324,12 +326,28 @@ class HomeFragment : Fragment() {
     private fun setupFilterButtons() {
         val genres = resources.getStringArray(R.array.book_types)
 
+        // Add "Semua" chip first
+        val allChip = com.google.android.material.chip.Chip(requireContext(), null, R.style.CustomChipStyle).apply {
+            text = "Semua"
+            isCheckable = true
+            isClickable = true
+            isChecked = true // Set as default selected
+            setOnClickListener {
+                // Clear search when filter is selected
+                binding.etSearch.setText("")
+                homeViewModel.filterBooksByGenre("Semua")
+            }
+        }
+        binding.chipGroupGenre.addView(allChip)
+
         for (genre in genres) {
             val chip = com.google.android.material.chip.Chip(requireContext(), null, R.style.CustomChipStyle).apply {
                 text = genre
                 isCheckable = true
                 isClickable = true
                 setOnClickListener {
+                    // Clear search when filter is selected
+                    binding.etSearch.setText("")
                     homeViewModel.filterBooksByGenre(genre)
                 }
             }
@@ -337,6 +355,31 @@ class HomeFragment : Fragment() {
 
         }
 
+    }
+    
+    private fun setupSearchBar() {
+        // Setup search functionality with debouncing
+        binding.etSearch.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val query = s.toString().trim()
+                
+                // Cancel previous timer
+                searchTimer?.cancel()
+                
+                // Start new timer with 300ms delay
+                searchTimer = object : android.os.CountDownTimer(300, 300) {
+                    override fun onTick(millisUntilFinished: Long) {}
+                    
+                    override fun onFinish() {
+                        homeViewModel.searchBooks(query)
+                    }
+                }.start()
+            }
+        })
     }
     
     private fun setupDebugFeatures() {
@@ -384,6 +427,8 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        searchTimer?.cancel()
+        searchTimer = null
         notificationPopup?.dismiss()
         notificationPopup = null
         _binding = null

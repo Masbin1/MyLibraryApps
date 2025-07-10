@@ -269,6 +269,22 @@ class AppRepository {
     }
     
     /**
+     * Search books by title, author, or genre
+     */
+    fun searchBooks(query: String) {
+        if (query.isEmpty()) {
+            _books.value = cachedBooks
+            return
+        }
+        
+        _books.value = cachedBooks.filter { book ->
+            book.title.contains(query, ignoreCase = true) ||
+            book.author.contains(query, ignoreCase = true) ||
+            book.genre.contains(query, ignoreCase = true)
+        }
+    }
+    
+    /**
      * Load user data from Firestore
      */
     fun loadUserData(userId: String) {

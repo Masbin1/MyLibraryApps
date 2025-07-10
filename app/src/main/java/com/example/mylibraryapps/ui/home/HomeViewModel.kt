@@ -59,6 +59,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun filterBooksByGenre(genre: String) {
         repository.filterBooksByGenre(genre)
     }
+    
+    fun searchBooks(query: String) {
+        repository.searchBooks(query)
+    }
 
     fun clearErrorMessage() {
         repository.clearErrorMessage()
