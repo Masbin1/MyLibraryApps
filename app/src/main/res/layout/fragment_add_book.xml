@@ -309,47 +309,47 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Deskripsi -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#11000000"
-                app:strokeWidth="1dp">
+<!--            <com.google.android.material.card.MaterialCardView-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                app:cardCornerRadius="16dp"-->
+<!--                app:cardElevation="4dp"-->
+<!--                app:strokeColor="#11000000"-->
+<!--                app:strokeWidth="1dp">-->
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/white"
-                    android:orientation="vertical"
-                    android:padding="24dp">
+<!--                <LinearLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:background="@color/white"-->
+<!--                    android:orientation="vertical"-->
+<!--                    android:padding="24dp">-->
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:text="Tambahkan Deskripsi"
-                        android:textColor="@color/black"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+<!--                    <TextView-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_marginBottom="8dp"-->
+<!--                        android:text="Tambahkan Deskripsi"-->
+<!--                        android:textColor="@color/black"-->
+<!--                        android:textSize="16sp"-->
+<!--                        android:textStyle="bold" />-->
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textColorHint="#000000"
-                        app:boxStrokeColor="@color/purple_primary">
+<!--                    <com.google.android.material.textfield.TextInputLayout-->
+<!--                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:textColorHint="#000000"-->
+<!--                        app:boxStrokeColor="@color/purple_primary">-->
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etDescription"
-                            android:layout_width="match_parent"
-                            android:layout_height="120dp"
-                            android:gravity="top"
-                            android:inputType="textMultiLine"
-                            android:textColor="@color/black" />
-                    </com.google.android.material.textfield.TextInputLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+<!--                        <com.google.android.material.textfield.TextInputEditText-->
+<!--                            android:id="@+id/etDescription"-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="120dp"-->
+<!--                            android:gravity="top"-->
+<!--                            android:inputType="textMultiLine"-->
+<!--                            android:textColor="@color/black" />-->
+<!--                    </com.google.android.material.textfield.TextInputLayout>-->
+<!--                </LinearLayout>-->
+<!--            </com.google.android.material.card.MaterialCardView>-->
 
             <!-- Submit Button -->
             <FrameLayout
