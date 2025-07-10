@@ -155,7 +155,7 @@ class AccountFragment : Fragment() {
             binding.btnTestNotification.visibility = View.VISIBLE
         } else {
             // Hide test notification button in release mode
-            binding.btnTestNotification.visibility = View.VISIBLE
+            binding.btnTestNotification.visibility = View.GONE
         }
     }
 
