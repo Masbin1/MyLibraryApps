@@ -69,45 +69,45 @@ class TransactionListFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        setupToolbar()
+//        setupToolbar()
         setupRecyclerView()
         setupObservers()
-        setupFab()
+//        setupFab()
     }
 
-    private fun setupToolbar() {
-        binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressed()
-        }
-
-        binding.toolbar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.action_filter_all -> {
-                    viewModel.refreshTransactions()
-                    true
-                }
-                R.id.action_filter_borrow -> {
-                    viewModel.refreshTransactions("sedang dipinjam")
-                    true
-                }
-                R.id.action_filter_return -> {
-                    viewModel.refreshTransactions("sudah dikembalikan")
-                    true
-                }
-                R.id.action_export_pdf -> {
-                    showExportOptions()
-                    true
-                }
-                else -> false
-            }
-        }
-    }
-
-    private fun setupFab() {
-        binding.actionExportPdf.setOnClickListener {
-            showExportOptions()
-        }
-    }
+//    private fun setupToolbar() {
+//        binding.toolbar.setNavigationOnClickListener {
+//            requireActivity().onBackPressed()
+//        }
+//
+//        binding.toolbar.setOnMenuItemClickListener { menuItem ->
+//            when (menuItem.itemId) {
+//                R.id.action_filter_all -> {
+//                    viewModel.refreshTransactions()
+//                    true
+//                }
+//                R.id.action_filter_borrow -> {
+//                    viewModel.refreshTransactions("sedang dipinjam")
+//                    true
+//                }
+//                R.id.action_filter_return -> {
+//                    viewModel.refreshTransactions("sudah dikembalikan")
+//                    true
+//                }
+//                R.id.action_export_pdf -> {
+//                    showExportOptions()
+//                    true
+//                }
+//                else -> false
+//            }
+//        }
+//    }
+//
+//    private fun setupFab() {
+//        binding.actionExportPdf.setOnClickListener {
+//            showExportOptions()
+//        }
+//    }
 
     private fun showExportOptions() {
         MaterialAlertDialogBuilder(requireContext())

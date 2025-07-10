@@ -30,17 +30,17 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:listitem="@layout/item_transaction" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/action_export_pdf"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:importantForAccessibility="no"
-        android:src="@drawable/ic_filter_list"
-        app:backgroundTint="?attr/colorPrimary"
-        app:tint="@android:color/white"
-        tools:ignore="SpeakableTextPresentCheck" />
+<!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
+<!--        android:id="@+id/action_export_pdf"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="bottom|end"-->
+<!--        android:layout_margin="16dp"-->
+<!--        android:importantForAccessibility="no"-->
+<!--        android:src="@drawable/ic_filter_list"-->
+<!--        app:backgroundTint="?attr/colorPrimary"-->
+<!--        app:tint="@android:color/white"-->
+<!--        tools:ignore="SpeakableTextPresentCheck" />-->
 
     <ProgressBar
         android:id="@+id/progress_bar"
