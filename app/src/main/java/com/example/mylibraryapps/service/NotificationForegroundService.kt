@@ -102,7 +102,7 @@ class NotificationForegroundService : Service() {
         // Cancel existing timer
         notificationTimer?.cancel()
         
-        // Create new timer that checks every 30 minutes
+        // Create new timer that checks every 15 minutes
         notificationTimer = Timer().apply {
             scheduleAtFixedRate(object : TimerTask() {
                 override fun run() {
@@ -110,7 +110,7 @@ class NotificationForegroundService : Service() {
                         checkAndSendNotifications()
                     }
                 }
-            }, 0, 30 * 60 * 1000) // Check every 30 minutes
+            }, 0, 15 * 60 * 1000) // Check every 15 minutes
         }
         
         Log.d(TAG, "Periodic notification check started")

@@ -40,7 +40,7 @@ class AlarmScheduler(private val context: Context) {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             
-            // Schedule alarm to repeat every 2 hours
+            // Schedule alarm to repeat every 1 hour
             val calendar = Calendar.getInstance().apply {
                 timeInMillis = System.currentTimeMillis()
                 add(Calendar.MINUTE, 1) // Start after 1 minute
@@ -50,11 +50,11 @@ class AlarmScheduler(private val context: Context) {
             alarmManager.setRepeating(
                 AlarmManager.RTC_WAKEUP,
                 calendar.timeInMillis,
-                2 * 60 * 60 * 1000, // 2 hours in milliseconds
+                1 * 60 * 60 * 1000, // 1 hour in milliseconds
                 pendingIntent
             )
             
-            Log.d(TAG, "Notification alarm scheduled for every 2 hours")
+            Log.d(TAG, "Notification alarm scheduled for every 1 hour")
         } catch (e: Exception) {
             Log.e(TAG, "Error scheduling notification alarm", e)
         }

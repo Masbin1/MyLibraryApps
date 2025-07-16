@@ -156,7 +156,7 @@
             android:id="@+id/btnScheduleAlarm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="⏰ Schedule Alarm (Every 2 Hours)"
+            android:text="⏰ Schedule Alarm (Every 1 Hour)"
             android:layout_marginBottom="16dp"
             android:backgroundTint="#FF9800" />
 
