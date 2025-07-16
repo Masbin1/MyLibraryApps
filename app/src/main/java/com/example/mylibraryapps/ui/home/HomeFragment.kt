@@ -35,6 +35,7 @@ class HomeFragment : Fragment() {
     private var notificationPopup: PopupWindow? = null
     private var notificationBadge: FrameLayout? = null
     private var searchTimer: android.os.CountDownTimer? = null
+    private var currentFilter: String = "Semua"
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -326,35 +327,75 @@ class HomeFragment : Fragment() {
     private fun setupFilterButtons() {
         val genres = resources.getStringArray(R.array.book_types)
 
+        // Configure ChipGroup for single selection
+        binding.chipGroupGenre.apply {
+            isSingleSelection = true
+            isSelectionRequired = true
+        }
+
         // Add "Semua" chip first
         val allChip = com.google.android.material.chip.Chip(requireContext(), null, R.style.CustomChipStyle).apply {
             text = "Semua"
             isCheckable = true
             isClickable = true
-            isChecked = true // Set as default selected
-            setOnClickListener {
-                // Clear search when filter is selected
-                binding.etSearch.setText("")
-                homeViewModel.filterBooksByGenre("Semua")
-            }
+            id = View.generateViewId() // Generate unique ID for proper selection handling
         }
         binding.chipGroupGenre.addView(allChip)
 
+        // Add genre chips
         for (genre in genres) {
             val chip = com.google.android.material.chip.Chip(requireContext(), null, R.style.CustomChipStyle).apply {
                 text = genre
                 isCheckable = true
                 isClickable = true
-                setOnClickListener {
-                    // Clear search when filter is selected
-                    binding.etSearch.setText("")
-                    homeViewModel.filterBooksByGenre(genre)
-                }
+                id = View.generateViewId() // Generate unique ID for proper selection handling
             }
             binding.chipGroupGenre.addView(chip)
-
         }
 
+        // Set "Semua" as default selected
+        binding.chipGroupGenre.check(allChip.id)
+
+        // Set up selection listener
+        setupChipGroupListener()
+    }
+    
+    private fun setupChipGroupListener() {
+        binding.chipGroupGenre.setOnCheckedStateChangeListener { group, checkedIds ->
+            if (checkedIds.isNotEmpty()) {
+                val selectedChip = group.findViewById<com.google.android.material.chip.Chip>(checkedIds.first())
+                val selectedGenre = selectedChip.text.toString()
+                
+                Log.d("HomeFragment", "Filter selected: $selectedGenre")
+                
+                // Update current filter
+                currentFilter = selectedGenre
+                
+                // Clear search when filter is selected
+                binding.etSearch.setText("")
+                
+                // Apply filter
+                homeViewModel.filterBooksByGenre(selectedGenre)
+            }
+        }
+    }
+    
+    private fun resetFilterToAll() {
+        // Update current filter
+        currentFilter = "Semua"
+        
+        // Find the "Semua" chip and select it without triggering listener
+        for (i in 0 until binding.chipGroupGenre.childCount) {
+            val chip = binding.chipGroupGenre.getChildAt(i) as? com.google.android.material.chip.Chip
+            if (chip?.text == "Semua") {
+                // Temporarily remove listener to avoid recursive calls
+                binding.chipGroupGenre.setOnCheckedStateChangeListener(null)
+                binding.chipGroupGenre.check(chip.id)
+                // Restore listener
+                setupChipGroupListener()
+                break
+            }
+        }
     }
     
     private fun setupSearchBar() {
@@ -375,7 +416,14 @@ class HomeFragment : Fragment() {
                     override fun onTick(millisUntilFinished: Long) {}
                     
                     override fun onFinish() {
-                        homeViewModel.searchBooks(query)
+                        if (query.isNotEmpty()) {
+                            // Reset filter to "Semua" when searching
+                            resetFilterToAll()
+                            homeViewModel.searchBooks(query)
+                        } else {
+                            // When search is cleared, apply current filter
+                            homeViewModel.filterBooksByGenre(currentFilter)
+                        }
                     }
                 }.start()
             }
