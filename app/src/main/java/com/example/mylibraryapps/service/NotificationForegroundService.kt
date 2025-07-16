@@ -110,7 +110,7 @@ class NotificationForegroundService : Service() {
                         checkAndSendNotifications()
                     }
                 }
-            }, 0, 15 * 60 * 1000) // Check every 15 minutes
+            }, 0, 6 * 60 * 60 * 1000) // Check every 15 minutes
         }
         
         Log.d(TAG, "Periodic notification check started")

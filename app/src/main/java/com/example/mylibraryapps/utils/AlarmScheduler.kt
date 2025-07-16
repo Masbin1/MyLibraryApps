@@ -50,7 +50,7 @@ class AlarmScheduler(private val context: Context) {
             alarmManager.setRepeating(
                 AlarmManager.RTC_WAKEUP,
                 calendar.timeInMillis,
-                1 * 60 * 60 * 1000, // 1 hour in milliseconds
+                6 * 60 * 60 * 1000, // 6 hour in milliseconds
                 pendingIntent
             )
             
