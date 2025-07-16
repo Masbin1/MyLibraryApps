@@ -131,6 +131,38 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="🔧 Background Services"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnStartBackgroundService"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🚀 Start Background Service"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#4CAF50" />
+
+        <Button
+            android:id="@+id/btnStopBackgroundService"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⏹️ Stop Background Service"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#F44336" />
+
+        <Button
+            android:id="@+id/btnScheduleAlarm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⏰ Schedule Alarm (Every 2 Hours)"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="#FF9800" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="📖 How to Test:"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -139,14 +171,14 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="1. Update FCM Token first\n2. Create test transactions with different dates\n3. Run immediate notification check\n4. Check logcat for notification logs\n5. Clear notification records to test again\n6. Delete test transactions when done"
+            android:text="1. Update FCM Token first\n2. Start Background Service for persistent notifications\n3. Create test transactions with different dates\n4. Run immediate notification check\n5. Check logcat for notification logs\n6. Clear notification records to test again\n7. Delete test transactions when done"
             android:textSize="14sp"
             android:layout_marginBottom="16dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="💡 Tips:\n• Check Android Logcat for detailed logs\n• Look for tags: NotificationTestHelper, PushNotificationHelper, FCMService\n• Notifications will appear in system notification panel\n• Test different scenarios by creating multiple transactions"
+            android:text="💡 Tips:\n• Check Android Logcat for detailed logs\n• Look for tags: NotificationTestHelper, PushNotificationHelper, FCMService\n• Notifications will appear in system notification panel\n• Background service will run even when app is closed\n• Test different scenarios by creating multiple transactions\n• Use 'Test System Notification' for immediate results"
             android:textSize="12sp"
             android:alpha="0.7" />
 

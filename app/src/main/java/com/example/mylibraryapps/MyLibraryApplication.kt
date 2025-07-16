@@ -6,6 +6,8 @@ import androidx.lifecycle.Observer
 import com.example.mylibraryapps.data.AppRepository
 import com.example.mylibraryapps.utils.NetworkMonitor
 import com.example.mylibraryapps.utils.NotificationScheduler
+import com.example.mylibraryapps.utils.AlarmScheduler
+import com.example.mylibraryapps.service.NotificationForegroundService
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
@@ -22,6 +24,9 @@ class MyLibraryApplication : Application() {
     
     // Notification scheduler
     lateinit var notificationScheduler: NotificationScheduler
+    
+    // Alarm scheduler
+    lateinit var alarmScheduler: AlarmScheduler
     
     override fun onCreate() {
         super.onCreate()
@@ -40,6 +45,9 @@ class MyLibraryApplication : Application() {
         
         // Initialize notification scheduler
         setupNotificationScheduler()
+        
+        // Setup background services
+        setupBackgroundServices()
         
         // Preload data
         repository.preloadData()
@@ -110,6 +118,20 @@ class MyLibraryApplication : Application() {
         Log.d("NotificationScheduler", "Notification scheduling initialized")
     }
     
+    /**
+     * Setup background services for persistent notifications
+     */
+    private fun setupBackgroundServices() {
+        // Start foreground service for background notifications
+        NotificationForegroundService.startService(this)
+        
+        // Setup alarm scheduler
+        alarmScheduler = AlarmScheduler(this)
+        alarmScheduler.scheduleNotificationAlarm()
+        
+        Log.d("BackgroundServices", "Background services initialized")
+    }
+    
     override fun onTerminate() {
         super.onTerminate()
         // Stop network monitoring
@@ -117,5 +139,9 @@ class MyLibraryApplication : Application() {
         
         // Cancel scheduled notifications
         notificationScheduler.cancelAllScheduledWork()
+        
+        // Stop background services
+        NotificationForegroundService.stopService(this)
+        alarmScheduler.cancelNotificationAlarm()
     }
 }

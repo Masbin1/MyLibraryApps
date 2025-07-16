@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.utils.NotificationTestHelper
+import com.example.mylibraryapps.service.NotificationForegroundService
+import com.example.mylibraryapps.utils.AlarmScheduler
 import kotlinx.coroutines.launch
 
 class NotificationTestActivity : AppCompatActivity() {
@@ -107,6 +109,22 @@ class NotificationTestActivity : AppCompatActivity() {
                     Toast.makeText(this@NotificationTestActivity, "No test transaction to delete", Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+        
+        findViewById<Button>(R.id.btnStartBackgroundService).setOnClickListener {
+            NotificationForegroundService.startService(this)
+            Toast.makeText(this, "Background service started", Toast.LENGTH_SHORT).show()
+        }
+        
+        findViewById<Button>(R.id.btnStopBackgroundService).setOnClickListener {
+            NotificationForegroundService.stopService(this)
+            Toast.makeText(this, "Background service stopped", Toast.LENGTH_SHORT).show()
+        }
+        
+        findViewById<Button>(R.id.btnScheduleAlarm).setOnClickListener {
+            val alarmScheduler = AlarmScheduler(this)
+            alarmScheduler.scheduleNotificationAlarm()
+            Toast.makeText(this, "Alarm scheduled", Toast.LENGTH_SHORT).show()
         }
     }
 }
