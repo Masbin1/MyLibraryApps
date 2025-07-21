@@ -1,5 +1,6 @@
 package com.example.mylibraryapps.service
 
+import android.util.Log
 import com.example.mylibraryapps.data.NotificationRepository
 import com.example.mylibraryapps.model.Transaction
 import com.google.firebase.firestore.FirebaseFirestore
@@ -11,25 +12,36 @@ import java.util.concurrent.TimeUnit
 class NotificationService {
     private val db = FirebaseFirestore.getInstance()
     private val notificationRepository = NotificationRepository()
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    
+    companion object {
+        private const val TAG = "NotificationService"
+    }
 
     suspend fun checkAndCreateNotifications() {
         try {
+            Log.d(TAG, "Starting notification check for all active transactions")
+            
             // Get all active transactions (borrowed books)
             val activeTransactions = getActiveTransactions()
+            Log.d(TAG, "Found ${activeTransactions.size} active transactions")
             
             for (transaction in activeTransactions) {
                 checkTransactionForNotifications(transaction)
             }
+            
+            // Clean up notifications for completed transactions
+            cleanupCompletedTransactionNotifications()
+            
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Error in checkAndCreateNotifications", e)
         }
     }
 
     private suspend fun getActiveTransactions(): List<Transaction> {
         return try {
             val snapshot = db.collection("transactions")
-                .whereEqualTo("status", "Dipinjam")
+                .whereEqualTo("status", "dipinjam")
                 .get()
                 .await()
 
@@ -37,6 +49,7 @@ class NotificationService {
                 doc.toObject(Transaction::class.java)?.copy(id = doc.id)
             }
         } catch (e: Exception) {
+            Log.e(TAG, "Error fetching active transactions", e)
             emptyList()
         }
     }
@@ -165,7 +178,7 @@ class NotificationService {
         return try {
             val snapshot = db.collection("transactions")
                 .whereEqualTo("userId", userId)
-                .whereEqualTo("status", "Dipinjam")
+                .whereEqualTo("status", "dipinjam")
                 .get()
                 .await()
 
@@ -173,7 +186,79 @@ class NotificationService {
                 doc.toObject(Transaction::class.java)?.copy(id = doc.id)
             }
         } catch (e: Exception) {
+            Log.e(TAG, "Error fetching user active transactions", e)
             emptyList()
+        }
+    }
+    
+    /**
+     * Hapus notifikasi untuk transaksi yang sudah selesai (dikembalikan)
+     */
+    private suspend fun cleanupCompletedTransactionNotifications() {
+        try {
+            Log.d(TAG, "Starting cleanup of completed transaction notifications")
+            
+            // Ambil semua transaksi yang sudah dikembalikan
+            val completedTransactions = db.collection("transactions")
+                .whereEqualTo("status", "dikembalikan")
+                .get()
+                .await()
+            
+            val completedTransactionIds = completedTransactions.documents.map { it.id }
+            
+            if (completedTransactionIds.isNotEmpty()) {
+                Log.d(TAG, "Found ${completedTransactionIds.size} completed transactions")
+                
+                // Hapus notifikasi untuk transaksi yang sudah selesai
+                val notificationsToDelete = db.collection("notifications")
+                    .whereIn("relatedItemId", completedTransactionIds)
+                    .get()
+                    .await()
+                
+                if (notificationsToDelete.documents.isNotEmpty()) {
+                    val batch = db.batch()
+                    notificationsToDelete.documents.forEach { doc ->
+                        batch.delete(doc.reference)
+                    }
+                    batch.commit().await()
+                    
+                    Log.d(TAG, "Cleaned up ${notificationsToDelete.documents.size} notifications for completed transactions")
+                } else {
+                    Log.d(TAG, "No notifications to clean up")
+                }
+            } else {
+                Log.d(TAG, "No completed transactions found")
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error cleaning up completed transaction notifications", e)
+        }
+    }
+    
+    /**
+     * Hapus semua notifikasi untuk transaksi tertentu
+     */
+    suspend fun deleteNotificationsForTransaction(transactionId: String) {
+        try {
+            Log.d(TAG, "Deleting notifications for transaction: $transactionId")
+            
+            val notificationsToDelete = db.collection("notifications")
+                .whereEqualTo("relatedItemId", transactionId)
+                .get()
+                .await()
+            
+            if (notificationsToDelete.documents.isNotEmpty()) {
+                val batch = db.batch()
+                notificationsToDelete.documents.forEach { doc ->
+                    batch.delete(doc.reference)
+                }
+                batch.commit().await()
+                
+                Log.d(TAG, "Deleted ${notificationsToDelete.documents.size} notifications for transaction $transactionId")
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting notifications for transaction $transactionId", e)
         }
     }
 }

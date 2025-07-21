@@ -49,6 +49,9 @@ class MyLibraryApplication : Application() {
         // Setup background services
         setupBackgroundServices()
         
+        // Run initial notification check
+        runInitialNotificationCheck()
+        
         // Preload data
         repository.preloadData()
     }
@@ -130,6 +133,15 @@ class MyLibraryApplication : Application() {
         alarmScheduler.scheduleNotificationAlarm()
         
         Log.d("BackgroundServices", "Background services initialized")
+    }
+    
+    /**
+     * Run initial notification check when app starts
+     */
+    private fun runInitialNotificationCheck() {
+        // Use the existing NotificationScheduler to run immediate check
+        notificationScheduler.scheduleImmediateNotificationCheck()
+        Log.d("NotificationCheck", "Initial notification check triggered")
     }
     
     override fun onTerminate() {

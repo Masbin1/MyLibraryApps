@@ -27,7 +27,13 @@ class NotificationRepository {
                     doc.toObject(Notification::class.java)?.copy(id = doc.id)
                 } ?: emptyList()
 
-                trySend(notifications)
+                // Filter out notifications for completed transactions
+                val activeNotifications = notifications.filter { notification ->
+                    // Keep general notifications and notifications for active transactions
+                    notification.type == "general" || notification.relatedItemId.isNotEmpty()
+                }
+
+                trySend(activeNotifications)
             }
 
         awaitClose { listener.remove() }
