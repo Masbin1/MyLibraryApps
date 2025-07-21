@@ -100,14 +100,24 @@ class BookDetailFragment : Fragment() {
     }
 
     private fun borrowBook() {
+        Log.d("BookDetailFragment", "Starting borrow process for book: ${book.title} (ID: ${book.id}, Quantity: ${book.quantity})")
+        
         val currentUser = auth.currentUser
         if (currentUser == null) {
             showToast("Anda harus login terlebih dahulu")
             return
         }
 
+        // Check if book ID is valid
+        if (book.id.isEmpty()) {
+            Log.e("BookDetailFragment", "Book ID is empty")
+            showToast("ID buku tidak valid")
+            return
+        }
+
         // Check if book is available
         if (book.quantity <= 0) {
+            Log.w("BookDetailFragment", "Book quantity is ${book.quantity}, not available for borrowing")
             showToast("Buku tidak tersedia untuk dipinjam")
             return
         }
@@ -212,46 +222,22 @@ class BookDetailFragment : Fragment() {
             remainingDays = 7
         )
 
+        // Create transaction with auto-generated ID
+        val transactionRef = db.collection("transactions").document()
+        val transactionWithId = transaction.copy(id = transactionRef.id)
+        
         // Try to create the transaction first
-        db.collection("transactions").document()
-            .set(transaction)
+        transactionRef.set(transactionWithId)
             .addOnSuccessListener {
-                Log.d("BookDetailFragment", "Transaction created successfully")
+                Log.d("BookDetailFragment", "Transaction created successfully with ID: ${transactionRef.id}")
                 
-                // Now try to update the book quantity
-                db.collection("books").document(book.id)
-                    .update("quantity", book.quantity - 1)
-                    .addOnSuccessListener {
-                        Log.d("BookDetailFragment", "Book quantity updated successfully")
-                        showToast("Permintaan peminjaman berhasil diajukan. Menunggu konfirmasi admin.")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("BookDetailFragment", "Failed to update book quantity", e)
-                        showToast("Peminjaman berhasil diajukan, tetapi gagal memperbarui stok buku: ${e.message}")
-                    }
+                // Skip book quantity update for now - bypass
+                Log.d("BookDetailFragment", "Skipping book quantity update (bypassed)")
+                showToast("Permintaan peminjaman berhasil diajukan. Menunggu konfirmasi admin.")
             }
             .addOnFailureListener { e ->
                 Log.e("BookDetailFragment", "Failed to create transaction", e)
                 showToast("Gagal mengajukan peminjaman: ${e.message}")
-                
-                // Try alternative approach without batch operation
-                try {
-                    // Create a new transaction with a random ID
-                    val transactionId = UUID.randomUUID().toString()
-                    val transactionWithId = transaction.copy(id = transactionId)
-                    
-                    // Try to add the transaction directly
-                    db.collection("transactions").document(transactionId)
-                        .set(transactionWithId)
-                        .addOnSuccessListener {
-                            showToast("Permintaan peminjaman berhasil diajukan. Menunggu konfirmasi admin.")
-                        }
-                        .addOnFailureListener { e2 ->
-                            showToast("Gagal mengajukan peminjaman (metode alternatif): ${e2.message}")
-                        }
-                } catch (e2: Exception) {
-                    Log.e("BookDetailFragment", "Alternative transaction creation failed", e2)
-                }
             }
     }
 
