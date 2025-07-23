@@ -53,7 +53,7 @@ class NotificationForegroundService : Service() {
         Log.d(TAG, "Notification service started")
         
         // Start foreground service
-        startForeground(NOTIFICATION_ID, createServiceNotification())
+//        startForeground(NOTIFICATION_ID, createServiceNotification())
         
         // Start periodic notification checking
         startPeriodicNotificationCheck()
@@ -68,10 +68,13 @@ class NotificationForegroundService : Service() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_MIN // Ubah ke IMPORTANCE_MIN agar lebih tersembunyi
             ).apply {
                 description = "Service untuk mengecek notifikasi perpustakaan"
                 setShowBadge(false)
+                enableLights(false)
+                enableVibration(false)
+                setSound(null, null)
             }
             
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -90,11 +93,13 @@ class NotificationForegroundService : Service() {
         
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("📚 Library Notification Service")
-            .setContentText("Mengecek pengingat pengembalian buku...")
+            .setContentTitle("Library App")
+            .setContentText("Berjalan di background")
             .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(NotificationCompat.PRIORITY_MIN) // Priority minimal
             .setOngoing(true)
+            .setSilent(true) // Tidak ada suara
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET) // Tersembunyi di lock screen
             .build()
     }
     
