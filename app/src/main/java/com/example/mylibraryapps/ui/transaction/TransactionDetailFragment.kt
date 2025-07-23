@@ -103,6 +103,7 @@ class TransactionDetailFragment : Fragment() {
         if (!adminCheckCompleted) return
 
         if (adminStatus) {
+            // Logic untuk admin
             when (transaction.status) {
                 "menunggu konfirmasi pinjam" -> {
                     binding.btnConfirm.visibility = View.VISIBLE
@@ -110,11 +111,11 @@ class TransactionDetailFragment : Fragment() {
                     binding.btnConfirm.setOnClickListener { confirmBorrow() }
                 }
 
-                "sedang dipinjam" -> {
-                    binding.btnConfirm.visibility = View.VISIBLE
-                    binding.btnConfirm.text = "Konfirmasi Pengembalian"
-                    binding.btnConfirm.setOnClickListener { confirmReturn() }
-                }
+//                "sedang dipinjam" -> {
+//                    binding.btnConfirm.visibility = View.VISIBLE
+//                    binding.btnConfirm.text = "Konfirmasi Pengembalian"
+//                    binding.btnConfirm.setOnClickListener { confirmReturn() }
+//                }
 
                 "menunggu konfirmasi pengembalian" -> {
                     binding.btnConfirm.visibility = View.VISIBLE
@@ -127,8 +128,18 @@ class TransactionDetailFragment : Fragment() {
                 }
             }
         } else {
-            // User biasa tidak tampilkan tombol apapun
-            binding.btnConfirm.visibility = View.GONE
+            // Logic untuk anggota (bukan admin)
+            when (transaction.status) {
+                "sedang dipinjam" -> {
+                    binding.btnConfirm.visibility = View.VISIBLE
+                    binding.btnConfirm.text = "Ajukan Pengembalian"
+                    binding.btnConfirm.setOnClickListener { requestReturn() }
+                }
+
+                else -> {
+                    binding.btnConfirm.visibility = View.GONE
+                }
+            }
         }
     }
 

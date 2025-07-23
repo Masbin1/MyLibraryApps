@@ -31,8 +31,12 @@ service cloud.firestore {
       // Allow any authenticated user to create transactions (borrow books)
       // Removed the check that userId must match auth.uid to allow more flexibility
       allow create: if request.auth != null;
-      // Only admins can update or delete transactions
-      allow update, delete: if request.auth != null && isAdmin();
+      // Allow users to update their own transactions (for requesting return)
+      // and admins can update any transaction
+      allow update: if request.auth != null && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+      // Only admins can delete transactions
+      allow delete: if request.auth != null && isAdmin();
     }
 
     // Notifications collection
