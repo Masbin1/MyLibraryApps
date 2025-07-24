@@ -5,6 +5,7 @@ import com.example.mylibraryapps.data.NotificationRepository
 import com.example.mylibraryapps.model.Transaction
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeout
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -16,23 +17,38 @@ class NotificationService {
     
     companion object {
         private const val TAG = "NotificationService"
+        private const val MAX_BATCH_SIZE = 500 // Limit batch operations
+        private const val QUERY_TIMEOUT = 15000L // 15 seconds timeout
     }
 
     suspend fun checkAndCreateNotifications() {
         try {
             Log.d(TAG, "Starting notification check for all active transactions")
             
-            // Get all active transactions (borrowed books)
-            val activeTransactions = getActiveTransactions()
-            Log.d(TAG, "Found ${activeTransactions.size} active transactions")
-            
-            for (transaction in activeTransactions) {
-                checkTransactionForNotifications(transaction)
+            // Add timeout to prevent hanging
+            withTimeout(QUERY_TIMEOUT) {
+                // Get all active transactions (borrowed books)
+                val activeTransactions = getActiveTransactions()
+                Log.d(TAG, "Found ${activeTransactions.size} active transactions")
+                
+                // Process transactions in batches to prevent memory issues
+                activeTransactions.chunked(50).forEach { batch ->
+                    batch.forEach { transaction ->
+                        try {
+                            checkTransactionForNotifications(transaction)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error processing transaction ${transaction.id}", e)
+                            // Continue with other transactions
+                        }
+                    }
+                }
+                
+                // Clean up notifications for completed transactions
+                cleanupCompletedTransactionNotifications()
             }
             
-            // Clean up notifications for completed transactions
-            cleanupCompletedTransactionNotifications()
-            
+        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+            Log.e(TAG, "Notification check timed out", e)
         } catch (e: Exception) {
             Log.e(TAG, "Error in checkAndCreateNotifications", e)
         }
@@ -198,38 +214,50 @@ class NotificationService {
         try {
             Log.d(TAG, "Starting cleanup of completed transaction notifications")
             
-            // Ambil semua transaksi yang sudah dikembalikan
-            val completedTransactions = db.collection("transactions")
-                .whereEqualTo("status", "dikembalikan")
-                .get()
-                .await()
-            
-            val completedTransactionIds = completedTransactions.documents.map { it.id }
-            
-            if (completedTransactionIds.isNotEmpty()) {
-                Log.d(TAG, "Found ${completedTransactionIds.size} completed transactions")
-                
-                // Hapus notifikasi untuk transaksi yang sudah selesai
-                val notificationsToDelete = db.collection("notifications")
-                    .whereIn("relatedItemId", completedTransactionIds)
+            // Add timeout for cleanup operation
+            withTimeout(10000) { // 10 seconds timeout
+                // Ambil semua transaksi yang sudah dikembalikan
+                val completedTransactions = db.collection("transactions")
+                    .whereEqualTo("status", "dikembalikan")
+                    .limit(100) // Limit to prevent large queries
                     .get()
                     .await()
                 
-                if (notificationsToDelete.documents.isNotEmpty()) {
-                    val batch = db.batch()
-                    notificationsToDelete.documents.forEach { doc ->
-                        batch.delete(doc.reference)
-                    }
-                    batch.commit().await()
+                val completedTransactionIds = completedTransactions.documents.map { it.id }
+                
+                if (completedTransactionIds.isNotEmpty()) {
+                    Log.d(TAG, "Found ${completedTransactionIds.size} completed transactions")
                     
-                    Log.d(TAG, "Cleaned up ${notificationsToDelete.documents.size} notifications for completed transactions")
+                    // Process in smaller chunks to avoid whereIn limit (max 10 items)
+                    completedTransactionIds.chunked(10).forEach { chunk ->
+                        try {
+                            // Hapus notifikasi untuk transaksi yang sudah selesai
+                            val notificationsToDelete = db.collection("notifications")
+                                .whereIn("relatedItemId", chunk)
+                                .get()
+                                .await()
+                            
+                            if (notificationsToDelete.documents.isNotEmpty()) {
+                                val batch = db.batch()
+                                notificationsToDelete.documents.forEach { doc ->
+                                    batch.delete(doc.reference)
+                                }
+                                batch.commit().await()
+                                
+                                Log.d(TAG, "Cleaned up ${notificationsToDelete.documents.size} notifications for chunk")
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error cleaning up notification chunk", e)
+                            // Continue with other chunks
+                        }
+                    }
                 } else {
-                    Log.d(TAG, "No notifications to clean up")
+                    Log.d(TAG, "No completed transactions found")
                 }
-            } else {
-                Log.d(TAG, "No completed transactions found")
             }
             
+        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+            Log.e(TAG, "Cleanup operation timed out", e)
         } catch (e: Exception) {
             Log.e(TAG, "Error cleaning up completed transaction notifications", e)
         }

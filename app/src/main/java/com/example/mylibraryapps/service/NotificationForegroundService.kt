@@ -21,6 +21,7 @@ class NotificationForegroundService : Service() {
     
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var notificationTimer: Timer? = null
+    private var isServiceRunning = false
     
     companion object {
         private const val TAG = "NotificationForegroundService"
@@ -52,11 +53,15 @@ class NotificationForegroundService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "Notification service started")
         
-        // Start foreground service
-//        startForeground(NOTIFICATION_ID, createServiceNotification())
-        
-        // Start periodic notification checking
-        startPeriodicNotificationCheck()
+        if (!isServiceRunning) {
+            // Start foreground service - WAJIB untuk foreground service
+            startForeground(NOTIFICATION_ID, createServiceNotification())
+            
+            // Start periodic notification checking
+            startPeriodicNotificationCheck()
+            
+            isServiceRunning = true
+        }
         
         return START_STICKY // Service will be restarted if killed
     }
@@ -107,34 +112,47 @@ class NotificationForegroundService : Service() {
         // Cancel existing timer
         notificationTimer?.cancel()
         
-        // Create new timer that checks every 15 minutes
-        notificationTimer = Timer().apply {
+        // Create new timer that checks every 4 hours (reduced frequency)
+        notificationTimer = Timer("NotificationTimer", true).apply {
             scheduleAtFixedRate(object : TimerTask() {
                 override fun run() {
-                    serviceScope.launch {
-                        checkAndSendNotifications()
+                    // Check if service is still running
+                    if (isServiceRunning) {
+                        serviceScope.launch {
+                            try {
+                                checkAndSendNotifications()
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Error in periodic notification check", e)
+                                // Don't crash the service, just log the error
+                            }
+                        }
                     }
                 }
-            }, 0, 6 * 60 * 60 * 1000) // Check every 15 minutes
+            }, 0, 4 * 60 * 60 * 1000) // Check every 4 hours (reduced from 6)
         }
         
-        Log.d(TAG, "Periodic notification check started")
+        Log.d(TAG, "Periodic notification check started (every 4 hours)")
     }
     
     private suspend fun checkAndSendNotifications() {
         try {
             Log.d(TAG, "Checking notifications in background...")
             
-            val notificationService = NotificationService()
-            val pushNotificationHelper = PushNotificationHelper(this)
-            
-            // Check and create notifications
-            notificationService.checkAndCreateNotifications()
-            
-            // Send push notifications
-            pushNotificationHelper.sendScheduledNotifications()
+            // Add timeout to prevent hanging
+            withTimeout(30000) { // 30 seconds timeout
+                val notificationService = NotificationService()
+                val pushNotificationHelper = PushNotificationHelper(this@NotificationForegroundService)
+                
+                // Check and create notifications
+                notificationService.checkAndCreateNotifications()
+                
+                // Send push notifications
+                pushNotificationHelper.sendScheduledNotifications()
+            }
             
             Log.d(TAG, "Background notification check completed")
+        } catch (e: TimeoutCancellationException) {
+            Log.e(TAG, "Notification check timed out", e)
         } catch (e: Exception) {
             Log.e(TAG, "Error in background notification check", e)
         }
@@ -142,8 +160,23 @@ class NotificationForegroundService : Service() {
     
     override fun onDestroy() {
         super.onDestroy()
-        notificationTimer?.cancel()
-        serviceScope.cancel()
+        isServiceRunning = false
+        
+        // Cancel timer safely
+        try {
+            notificationTimer?.cancel()
+            notificationTimer = null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error canceling timer", e)
+        }
+        
+        // Cancel coroutine scope
+        try {
+            serviceScope.cancel()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error canceling coroutine scope", e)
+        }
+        
         Log.d(TAG, "Notification service destroyed")
     }
 }

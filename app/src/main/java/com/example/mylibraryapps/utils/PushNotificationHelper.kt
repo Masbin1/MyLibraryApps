@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeout
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -24,12 +25,25 @@ class PushNotificationHelper(private val context: Context? = null) {
     
     suspend fun sendScheduledNotifications() {
         try {
-            // Get all active transactions
-            val activeTransactions = getActiveTransactions()
-            
-            for (transaction in activeTransactions) {
-                checkAndSendNotification(transaction)
+            // Add timeout to prevent hanging
+            withTimeout(20000) { // 20 seconds timeout
+                // Get all active transactions
+                val activeTransactions = getActiveTransactions()
+                
+                // Process in batches to prevent memory issues
+                activeTransactions.chunked(20).forEach { batch ->
+                    batch.forEach { transaction ->
+                        try {
+                            checkAndSendNotification(transaction)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error processing transaction ${transaction.id}", e)
+                            // Continue with other transactions
+                        }
+                    }
+                }
             }
+        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+            Log.e(TAG, "Send scheduled notifications timed out", e)
         } catch (e: Exception) {
             Log.e(TAG, "Error sending scheduled notifications", e)
         }
@@ -38,12 +52,18 @@ class PushNotificationHelper(private val context: Context? = null) {
     private suspend fun getActiveTransactions(): List<Transaction> {
         return try {
             val snapshot = db.collection("transactions")
-                .whereEqualTo("status", "Dipinjam")
+                .whereEqualTo("status", "dipinjam") // Fixed status consistency
+                .limit(100) // Limit to prevent large queries
                 .get()
                 .await()
             
             snapshot.documents.mapNotNull { doc ->
-                doc.toObject(Transaction::class.java)?.copy(id = doc.id)
+                try {
+                    doc.toObject(Transaction::class.java)?.copy(id = doc.id)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parsing transaction ${doc.id}", e)
+                    null
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error getting active transactions", e)

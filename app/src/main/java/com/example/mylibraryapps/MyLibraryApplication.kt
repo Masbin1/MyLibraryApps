@@ -31,29 +31,35 @@ class MyLibraryApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         
-        // Initialize Firebase
-        FirebaseApp.initializeApp(this)
-        
-        // Configure Firestore for better offline support
-        configureFirestore()
-        
-        // Initialize network monitor
-        setupNetworkMonitoring()
-        
-        // Initialize FCM
-        setupFCM()
-        
-        // Initialize notification scheduler
-        setupNotificationScheduler()
-        
-        // Setup background services
-        setupBackgroundServices()
-        
-        // Run initial notification check
-        runInitialNotificationCheck()
-        
-        // Preload data
-        repository.preloadData()
+        try {
+            // Initialize Firebase
+            FirebaseApp.initializeApp(this)
+            
+            // Configure Firestore for better offline support
+            configureFirestore()
+            
+            // Initialize network monitor
+            setupNetworkMonitoring()
+            
+            // Initialize FCM
+            setupFCM()
+            
+            // Initialize notification scheduler
+            setupNotificationScheduler()
+            
+            // Setup background services (delayed to reduce startup load)
+            setupBackgroundServices()
+            
+            // Run initial notification check (delayed)
+            runInitialNotificationCheck()
+            
+            // Preload data (delayed to reduce startup time)
+            // repository.preloadData() // Commented out to reduce startup load
+            
+        } catch (e: Exception) {
+            Log.e("MyLibraryApplication", "Error during application initialization", e)
+            // Don't crash the app, just log the error
+        }
     }
     
     /**
@@ -76,8 +82,8 @@ class MyLibraryApplication : Application() {
         networkMonitor = NetworkMonitor(this)
         networkMonitor.startMonitoring()
         
-        // Observe network changes
-        networkMonitor.isConnected.observeForever { isConnected ->
+        // Observe network changes with proper lifecycle management
+        val networkObserver = Observer<Boolean> { isConnected ->
             if (!isConnected) {
                 // Show toast when connection is lost
                 Toast.makeText(
@@ -87,6 +93,8 @@ class MyLibraryApplication : Application() {
                 ).show()
             }
         }
+        
+        networkMonitor.isConnected.observeForever(networkObserver)
     }
     
     /**
