@@ -37,37 +37,45 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Show action bar for menu access (only in debug mode)
-        if (BuildConfig.DEBUG) {
-            supportActionBar?.show()
-        } else {
-            supportActionBar?.hide()
-        }
-
-        // Get repository from Application
-        repository = (application as MyLibraryApplication).repository
-
-        // Initialize Firebase Auth
-        auth = Firebase.auth
-
-        // Check if user is logged in
-        if (auth.currentUser == null) {
-            redirectToLogin()
-            return
-        }
-
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        setupNavigation()
-        setupDebugFeatures()
         
-        // Observe repository error messages
-        repository.errorMessage.observe(this) { errorMessage ->
-            errorMessage?.let {
-                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
-                repository.clearErrorMessage()
+        try {
+            // Show action bar for menu access (only in debug mode)
+            if (BuildConfig.DEBUG) {
+                supportActionBar?.show()
+            } else {
+                supportActionBar?.hide()
             }
+
+            // Get repository from Application
+            repository = (application as MyLibraryApplication).repository
+
+            // Initialize Firebase Auth
+            auth = Firebase.auth
+
+            // Check if user is logged in
+            if (auth.currentUser == null) {
+                redirectToLogin()
+                return
+            }
+
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+
+            setupNavigation()
+            setupDebugFeatures()
+            
+            // Observe repository error messages
+            repository.errorMessage.observe(this) { errorMessage ->
+                errorMessage?.let {
+                    Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+                    repository.clearErrorMessage()
+                }
+            }
+        } catch (e: Exception) {
+            // Log error and redirect to login if something goes wrong
+            android.util.Log.e("MainActivity", "Error in onCreate", e)
+            Toast.makeText(this, "Terjadi kesalahan saat memuat aplikasi", Toast.LENGTH_LONG).show()
+            redirectToLogin()
         }
     }
 

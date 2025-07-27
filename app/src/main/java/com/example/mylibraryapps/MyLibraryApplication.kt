@@ -28,6 +28,9 @@ class MyLibraryApplication : Application() {
     // Alarm scheduler
     lateinit var alarmScheduler: AlarmScheduler
     
+    // Network observer untuk cleanup
+    private var networkObserver: Observer<Boolean>? = null
+    
     override fun onCreate() {
         super.onCreate()
         
@@ -79,22 +82,28 @@ class MyLibraryApplication : Application() {
      * Setup network monitoring
      */
     private fun setupNetworkMonitoring() {
-        networkMonitor = NetworkMonitor(this)
-        networkMonitor.startMonitoring()
-        
-        // Observe network changes with proper lifecycle management
-        val networkObserver = Observer<Boolean> { isConnected ->
-            if (!isConnected) {
-                // Show toast when connection is lost
-                Toast.makeText(
-                    this,
-                    "Koneksi internet terputus. Beberapa fitur mungkin tidak tersedia.",
-                    Toast.LENGTH_LONG
-                ).show()
+        try {
+            networkMonitor = NetworkMonitor(this)
+            networkMonitor.startMonitoring()
+            
+            // Observe network changes with proper lifecycle management
+            networkObserver = Observer<Boolean> { isConnected ->
+                if (!isConnected) {
+                    // Show toast when connection is lost
+                    Toast.makeText(
+                        this,
+                        "Koneksi internet terputus. Beberapa fitur mungkin tidak tersedia.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
+            
+            networkObserver?.let { observer ->
+                networkMonitor.isConnected.observeForever(observer)
+            }
+        } catch (e: Exception) {
+            Log.e("MyLibraryApplication", "Error setting up network monitoring", e)
         }
-        
-        networkMonitor.isConnected.observeForever(networkObserver)
     }
     
     /**
@@ -132,14 +141,18 @@ class MyLibraryApplication : Application() {
      * Setup background services for persistent notifications
      */
     private fun setupBackgroundServices() {
-        // Start foreground service for background notifications
-        NotificationForegroundService.startService(this)
-        
-        // Setup alarm scheduler
-        alarmScheduler = AlarmScheduler(this)
-        alarmScheduler.scheduleNotificationAlarm()
-        
-        Log.d("BackgroundServices", "Background services initialized")
+        try {
+            // Start background service for notifications (tanpa foreground notification)
+            NotificationForegroundService.startService(this)
+            
+            // Setup alarm scheduler
+            alarmScheduler = AlarmScheduler(this)
+            alarmScheduler.scheduleNotificationAlarm()
+            
+            Log.d("BackgroundServices", "Background services initialized")
+        } catch (e: Exception) {
+            Log.e("MyLibraryApplication", "Error setting up background services", e)
+        }
     }
     
     /**
@@ -153,6 +166,12 @@ class MyLibraryApplication : Application() {
     
     override fun onTerminate() {
         super.onTerminate()
+        
+        // Remove network observer to prevent memory leak
+        networkObserver?.let { observer ->
+            networkMonitor.isConnected.removeObserver(observer)
+        }
+        
         // Stop network monitoring
         networkMonitor.stopMonitoring()
         
