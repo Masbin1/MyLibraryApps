@@ -72,7 +72,7 @@ class TransactionListFragment : Fragment() {
 //        setupToolbar()
         setupRecyclerView()
         setupObservers()
-//        setupFab()
+        setupFab()
     }
 
 //    private fun setupToolbar() {
@@ -103,11 +103,11 @@ class TransactionListFragment : Fragment() {
 //        }
 //    }
 //
-//    private fun setupFab() {
-//        binding.actionExportPdf.setOnClickListener {
-//            showExportOptions()
-//        }
-//    }
+    private fun setupFab() {
+        binding.actionExportPdf.setOnClickListener {
+            showExportOptions()
+        }
+    }
 
     private fun showExportOptions() {
         MaterialAlertDialogBuilder(requireContext())
@@ -157,6 +157,11 @@ class TransactionListFragment : Fragment() {
                 adapter.submitList(sortedList)
                 binding.tvEmpty.visibility = View.GONE
             }
+        }
+
+        // Observe admin status to show/hide export FAB
+        viewModel.isAdmin.observe(viewLifecycleOwner) { isAdmin ->
+            binding.actionExportPdf.visibility = if (isAdmin) View.VISIBLE else View.GONE
         }
     }
 
