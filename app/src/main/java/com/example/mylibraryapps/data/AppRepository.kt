@@ -23,6 +23,9 @@ class AppRepository {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
     
+    // Expose Firestore instance for external access (e.g., WorkManager)
+    val firestore: FirebaseFirestore get() = db
+    
     // Cache for books
     private val _books = MutableLiveData<List<Book>>()
     val books: LiveData<List<Book>> = _books

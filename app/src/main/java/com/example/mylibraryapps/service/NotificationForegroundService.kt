@@ -55,7 +55,7 @@ class NotificationForegroundService : Service() {
         
         if (!isServiceRunning) {
             // Start foreground service - WAJIB untuk foreground service
-            startForeground(NOTIFICATION_ID, createServiceNotification())
+//            startForeground(NOTIFICATION_ID, createServiceNotification())
             
             // Start periodic notification checking
             startPeriodicNotificationCheck()

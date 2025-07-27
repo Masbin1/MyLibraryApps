@@ -5,7 +5,7 @@ import android.widget.Toast
 import androidx.lifecycle.Observer
 import com.example.mylibraryapps.data.AppRepository
 import com.example.mylibraryapps.utils.NetworkMonitor
-import com.example.mylibraryapps.utils.NotificationScheduler
+import com.example.mylibraryapps.notification.NotificationScheduler
 import com.example.mylibraryapps.utils.AlarmScheduler
 import com.example.mylibraryapps.service.NotificationForegroundService
 import com.google.firebase.FirebaseApp
@@ -122,11 +122,10 @@ class MyLibraryApplication : Application() {
     private fun setupNotificationScheduler() {
         notificationScheduler = NotificationScheduler(this)
         
-        // Schedule periodic notification checks
-        notificationScheduler.scheduleDailyNotificationCheck()
-        notificationScheduler.schedulePeriodicNotificationCheck()
+        // Schedule periodic book reminder checks
+        notificationScheduler.scheduleBookReminders()
         
-        Log.d("NotificationScheduler", "Notification scheduling initialized")
+        Log.d("NotificationScheduler", "Book reminder scheduling initialized")
     }
     
     /**
@@ -147,9 +146,9 @@ class MyLibraryApplication : Application() {
      * Run initial notification check when app starts
      */
     private fun runInitialNotificationCheck() {
-        // Use the existing NotificationScheduler to run immediate check
-        notificationScheduler.scheduleImmediateNotificationCheck()
-        Log.d("NotificationCheck", "Initial notification check triggered")
+        // Use the NotificationScheduler to run immediate check
+        notificationScheduler.scheduleImmediateCheck()
+        Log.d("NotificationCheck", "Initial book reminder check triggered")
     }
     
     override fun onTerminate() {
@@ -158,7 +157,7 @@ class MyLibraryApplication : Application() {
         networkMonitor.stopMonitoring()
         
         // Cancel scheduled notifications
-        notificationScheduler.cancelAllScheduledWork()
+        notificationScheduler.cancelBookReminders()
         
         // Stop background services
         NotificationForegroundService.stopService(this)

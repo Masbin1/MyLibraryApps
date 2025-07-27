@@ -8,4 +8,10 @@
         android:icon="@drawable/ic_notification"
         app:showAsAction="never" />
     
+    <item
+        android:id="@+id/action_notification_settings"
+        android:title="Pengaturan Notifikasi"
+        android:icon="@drawable/ic_settings"
+        app:showAsAction="never" />
+    
 </menu>
