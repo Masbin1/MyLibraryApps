@@ -1,0 +1,377 @@
+@startuml MyLibraryApps_ClassDiagram
+
+!define ENTITY_COLOR #E1F5FE
+!define SERVICE_COLOR #F3E5F5
+!define REPOSITORY_COLOR #E8F5E8
+!define UI_COLOR #FFF3E0
+!define UTIL_COLOR #FAFAFA
+
+title MyLibraryApps - Class Diagram
+
+package "Model Layer" <<ENTITY_COLOR>> {
+    class Book {
+        - id: String
+        - title: String
+        - author: String
+        - publisher: String
+        - purchaseDate: Timestamp
+        - specifications: String
+        - material: String
+        - quantity: Long
+        - genre: String
+        - coverUrl: String
+        --
+        + getFormattedDate(): String
+    }
+    
+    class User {
+        - uid: String
+        - nama: String
+        - nis: String
+        - email: String
+        - kelas: String
+        - is_admin: Boolean
+    }
+    
+    class Transaction {
+        - id: String
+        - nameUser: String
+        - title: String
+        - author: String
+        - borrowDate: String
+        - returnDate: String
+        - status: String
+        - coverUrl: String
+        - userId: String
+        - bookId: String
+        - genre: String
+        - publisher: String
+        - remainingDays: Int
+        - stability: Int
+    }
+    
+    class Notification {
+        - id: String
+        - userId: String
+        - title: String
+        - message: String
+        - timestamp: Date
+        - isRead: Boolean
+        - type: String
+        - relatedItemId: String
+        - relatedItemTitle: String
+    }
+}
+
+package "Repository Layer" <<REPOSITORY_COLOR>> {
+    class AppRepository {
+        - db: FirebaseFirestore
+        - auth: FirebaseAuth
+        - _books: MutableLiveData<List<Book>>
+        - _userData: MutableLiveData<User?>
+        - _transactions: MutableLiveData<List<Transaction>>
+        - _notifications: MutableLiveData<List<Notification>>
+        - _unreadNotificationsCount: MutableLiveData<Int>
+        - _isLoading: MutableLiveData<Boolean>
+        - _errorMessage: MutableLiveData<String?>
+        - cachedBooks: List<Book>
+        - cachedTransactions: List<Transaction>
+        - cachedNotifications: List<Notification>
+        --
+        + preloadData(): void
+        + loadBooks(): void
+        + forceLoadBooks(): void
+        + filterBooksByGenre(genre: String): void
+        + searchBooks(query: String): void
+        + loadUserData(userId: String): void
+        + loadTransactions(): void
+        + loadNotifications(userId: String): void
+        - handleIndexError(...): void
+    }
+    
+    class BookRepository {
+        - db: FirebaseFirestore
+        - storage: FirebaseStorage
+        - storageRef: StorageReference
+        --
+        + addBook(book: Book, onSuccess: () -> Unit, onFailure: (Exception) -> Unit): void
+        + uploadBookCover(imageUri: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit): void
+        - testStorageConnection(): void
+    }
+    
+    class NotificationRepository {
+        - db: FirebaseFirestore
+        --
+        + createReturnReminder(...): void
+        + createOverdueNotification(...): void
+        + markAsRead(notificationId: String): void
+        + deleteNotification(notificationId: String): void
+    }
+}
+
+package "Service Layer" <<SERVICE_COLOR>> {
+    class NotificationForegroundService {
+        - serviceScope: CoroutineScope
+        - notificationTimer: Timer?
+        - isServiceRunning: Boolean
+        --
+        + {static} startService(context: Context): void
+        + {static} stopService(context: Context): void
+        + onCreate(): void
+        + onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
+        + onBind(intent: Intent?): IBinder?
+        + onDestroy(): void
+        - startPeriodicNotificationCheck(): void
+        - checkAndSendNotifications(): void
+    }
+    
+    class NotificationService {
+        - db: FirebaseFirestore
+        - notificationRepository: NotificationRepository
+        - dateFormat: SimpleDateFormat
+        --
+        + checkAndCreateNotifications(): void
+        + checkNotificationsForUser(userId: String): void
+        + deleteNotificationsForTransaction(transactionId: String): void
+        - getActiveTransactions(): List<Transaction>
+        - checkTransactionForNotifications(transaction: Transaction): void
+        - createReminderIfNotExists(...): void
+        - createOverdueNotificationIfNotExists(...): void
+        - reminderExists(...): Boolean
+        - cleanupCompletedTransactionNotifications(): void
+        - parseDate(dateString: String): Date?
+        - calculateDaysDifference(currentDate: Date, targetDate: Date): Int
+    }
+    
+    class MyFirebaseMessagingService {
+        --
+        + onMessageReceived(remoteMessage: RemoteMessage): void
+        + onNewToken(token: String): void
+        - sendNotificationToUser(title: String, body: String, data: Map<String, String>): void
+    }
+}
+
+package "UI Layer" <<UI_COLOR>> {
+    class MainActivity {
+        - binding: ActivityMainBinding
+        - auth: FirebaseAuth
+        - navController: NavController
+        - repository: AppRepository
+        - isNavigating: Boolean
+        --
+        + onCreate(savedInstanceState: Bundle?): void
+        + onStart(): void
+        + onDestinationChanged(...): void
+        + onSupportNavigateUp(): Boolean
+        + onCreateOptionsMenu(menu: Menu): Boolean
+        + onOptionsItemSelected(item: MenuItem): Boolean
+        - setupNavigation(): void
+        - setupDebugFeatures(): void
+        - safeNavigate(destinationId: Int): void
+        - redirectToLogin(): void
+    }
+    
+    class HomeFragment {
+        - binding: FragmentHomeBinding
+        - viewModel: HomeViewModel
+        - bookAdapter: BookAdapter
+        --
+        + onCreateView(...): View
+        + onViewCreated(view: View, savedInstanceState: Bundle?): void
+        - setupRecyclerView(): void
+        - observeViewModel(): void
+    }
+    
+    class HomeViewModel {
+        - repository: AppRepository
+        - _books: MutableLiveData<List<Book>>
+        - _isLoading: MutableLiveData<Boolean>
+        --
+        + books: LiveData<List<Book>>
+        + isLoading: LiveData<Boolean>
+        + loadBooks(): void
+        + searchBooks(query: String): void
+        + filterByGenre(genre: String): void
+    }
+    
+    class NotificationsFragment {
+        - binding: FragmentNotificationsBinding
+        - viewModel: NotificationsViewModel
+        - notificationAdapter: NotificationAdapter
+        --
+        + onCreateView(...): View
+        + onViewCreated(view: View, savedInstanceState: Bundle?): void
+        - setupRecyclerView(): void
+        - observeViewModel(): void
+    }
+    
+    class NotificationsViewModel {
+        - repository: AppRepository
+        - _notifications: MutableLiveData<List<Notification>>
+        - _unreadCount: MutableLiveData<Int>
+        --
+        + notifications: LiveData<List<Notification>>
+        + unreadCount: LiveData<Int>
+        + loadNotifications(): void
+        + markAsRead(notificationId: String): void
+        + deleteNotification(notificationId: String): void
+    }
+    
+    class BookAdapter {
+        - books: List<Book>
+        - onBookClick: (Book) -> Unit
+        --
+        + onCreateViewHolder(...): ViewHolder
+        + onBindViewHolder(holder: ViewHolder, position: Int): void
+        + getItemCount(): Int
+        + updateBooks(newBooks: List<Book>): void
+    }
+    
+    class NotificationAdapter {
+        - notifications: List<Notification>
+        - onNotificationClick: (Notification) -> Unit
+        --
+        + onCreateViewHolder(...): ViewHolder
+        + onBindViewHolder(holder: ViewHolder, position: Int): void
+        + getItemCount(): Int
+        + updateNotifications(newNotifications: List<Notification>): void
+    }
+}
+
+package "Utils Layer" <<UTIL_COLOR>> {
+    class PushNotificationHelper {
+        - context: Context?
+        - db: FirebaseFirestore
+        - messaging: FirebaseMessaging
+        - dateFormat: SimpleDateFormat
+        - localNotificationHelper: LocalNotificationHelper?
+        --
+        + sendScheduledNotifications(): void
+        - getActiveTransactions(): List<Transaction>
+        - checkAndSendNotification(transaction: Transaction): void
+        - sendReminderNotification(...): void
+        - sendOverdueNotification(...): void
+        - sendNotificationToToken(...): void
+        - getUserFCMToken(userId: String): String?
+        - notificationAlreadySent(...): Boolean
+        - markNotificationSent(...): void
+        - parseDate(dateString: String): Date?
+        - calculateDaysDifference(currentDate: Date, targetDate: Date): Int
+    }
+    
+    class LocalNotificationHelper {
+        - context: Context
+        - notificationManager: NotificationManager
+        --
+        + showTestNotification(title: String, body: String, priority: Int): void
+        + showOverdueNotification(title: String, body: String): void
+        + showSystemNotification(title: String, body: String, data: Map<String, String>): void
+        - createNotificationChannel(): void
+    }
+    
+    class NotificationHelper {
+        - context: Context
+        --
+        + createNotificationChannel(): void
+        + showNotification(title: String, message: String, notificationId: Int): void
+        + cancelNotification(notificationId: Int): void
+    }
+    
+    class AlarmScheduler {
+        - context: Context
+        - alarmManager: AlarmManager
+        --
+        + scheduleNotificationAlarm(transaction: Transaction): void
+        + cancelNotificationAlarm(transactionId: String): void
+        - createPendingIntent(transactionId: String): PendingIntent
+    }
+    
+    class NetworkMonitor {
+        - context: Context
+        - connectivityManager: ConnectivityManager
+        --
+        + isNetworkAvailable(): Boolean
+        + registerNetworkCallback(callback: ConnectivityManager.NetworkCallback): void
+        + unregisterNetworkCallback(callback: ConnectivityManager.NetworkCallback): void
+    }
+    
+    class FirestoreErrorHandler {
+        --
+        + {static} handleException(e: Exception, operation: String, tag: String): String
+        + {static} isNetworkError(e: Exception): Boolean
+        + {static} isPermissionError(e: Exception): Boolean
+    }
+}
+
+package "Worker Layer" <<SERVICE_COLOR>> {
+    class NotificationWorker {
+        - context: Context
+        - workerParams: WorkerParameters
+        --
+        + doWork(): Result
+        - checkAndSendNotifications(): void
+    }
+    
+    class BookReminderWorker {
+        - context: Context
+        - workerParams: WorkerParameters
+        --
+        + doWork(): Result
+        - processBookReminders(): void
+    }
+}
+
+package "Application" <<UI_COLOR>> {
+    class MyLibraryApplication {
+        + repository: AppRepository
+        --
+        + onCreate(): void
+        - initializeFirebase(): void
+        - setupNotificationChannels(): void
+    }
+}
+
+' Relationships - Main Dependencies
+MainActivity --> AppRepository : uses
+MainActivity --> HomeFragment : navigates to
+MainActivity --> NotificationsFragment : navigates to
+
+HomeFragment --> HomeViewModel : observes
+HomeFragment --> BookAdapter : uses
+HomeViewModel --> AppRepository : uses
+
+NotificationsFragment --> NotificationsViewModel : observes
+NotificationsFragment --> NotificationAdapter : uses
+NotificationsViewModel --> AppRepository : uses
+
+' Repository relationships
+AppRepository --> Book : manages
+AppRepository --> User : manages
+AppRepository --> Transaction : manages
+AppRepository --> Notification : manages
+
+BookRepository --> Book : manages
+NotificationRepository --> Notification : manages
+
+' Service relationships
+NotificationForegroundService --> NotificationService : uses
+NotificationForegroundService --> PushNotificationHelper : uses
+
+NotificationService --> NotificationRepository : uses
+NotificationService --> Transaction : processes
+
+PushNotificationHelper --> LocalNotificationHelper : uses
+PushNotificationHelper --> Transaction : processes
+
+' Worker relationships
+NotificationWorker --> NotificationService : uses
+BookReminderWorker --> NotificationService : uses
+
+' Application relationships
+MyLibraryApplication --> AppRepository : initializes
+
+' Utility relationships
+AlarmScheduler --> Transaction : schedules for
+LocalNotificationHelper --> NotificationHelper : extends
+
+@enduml
