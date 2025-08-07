@@ -10,5 +10,10 @@
   },
   "database": {
     "rules": "database.rules.json"
+  },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs18",
+    "region": "asia-southeast2"
   }
 }

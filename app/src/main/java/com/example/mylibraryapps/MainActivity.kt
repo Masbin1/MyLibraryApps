@@ -22,6 +22,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.ktx.BuildConfig
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.firestore.FirebaseFirestore
+import android.util.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -63,6 +66,9 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
 
             setupNavigation()
             setupDebugFeatures()
+            
+            // Update FCM token for current user
+            updateFCMToken()
             
             // Observe repository error messages
             repository.errorMessage.observe(this) { errorMessage ->
@@ -173,6 +179,33 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
         }
         startActivity(intent)
         finish()
+    }
+    
+    private fun updateFCMToken() {
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w("MainActivity", "Fetching FCM registration token failed", task.exception)
+                    return@addOnCompleteListener
+                }
+
+                // Get new FCM registration token
+                val token = task.result
+                Log.d("MainActivity", "FCM Token: $token")
+
+                // Update user document with FCM token
+                val db = FirebaseFirestore.getInstance()
+                db.collection("users").document(currentUser.uid)
+                    .update("fcmToken", token)
+                    .addOnSuccessListener {
+                        Log.d("MainActivity", "FCM token updated successfully")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("MainActivity", "Failed to update FCM token", e)
+                    }
+            }
+        }
     }
 
     override fun onStart() {

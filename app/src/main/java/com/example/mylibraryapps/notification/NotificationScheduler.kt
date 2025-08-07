@@ -5,6 +5,17 @@ import androidx.lifecycle.LiveData
 import androidx.work.*
 import java.util.concurrent.TimeUnit
 
+/**
+ * NotificationScheduler - Legacy WorkManager implementation
+ * 
+ * NOTE: This class is now deprecated in favor of Firebase Functions cron job.
+ * The new system uses Firebase Functions with scheduled triggers that run daily
+ * to check for overdue books and send push notifications via FCM.
+ * 
+ * See: FIREBASE_CRON_NOTIFICATION_GUIDE.md for the new implementation.
+ * 
+ * This class is kept for backward compatibility and testing purposes.
+ */
 class NotificationScheduler(private val context: Context) {
     
     companion object {

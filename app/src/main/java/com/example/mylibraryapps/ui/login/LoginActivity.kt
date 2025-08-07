@@ -17,6 +17,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
+import android.util.Log
 
 class LoginActivity : AppCompatActivity() {
 
@@ -108,7 +110,8 @@ class LoginActivity : AppCompatActivity() {
         db.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    // User data found, proceed to main activity
+                    // User data found, update FCM token and proceed to main activity
+                    updateFCMToken(userId)
                     Toast.makeText(this, "Login berhasil!", Toast.LENGTH_SHORT).show()
                     val intent = Intent(this, MainActivity::class.java)
                     startActivity(intent)
@@ -130,6 +133,29 @@ class LoginActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
+    }
+    
+    private fun updateFCMToken(userId: String) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w("LoginActivity", "Fetching FCM registration token failed", task.exception)
+                return@addOnCompleteListener
+            }
+
+            // Get new FCM registration token
+            val token = task.result
+            Log.d("LoginActivity", "FCM Token: $token")
+
+            // Update user document with FCM token
+            db.collection("users").document(userId)
+                .update("fcmToken", token)
+                .addOnSuccessListener {
+                    Log.d("LoginActivity", "FCM token updated successfully")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("LoginActivity", "Failed to update FCM token", e)
+                }
+        }
     }
     
     /**
