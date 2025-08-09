@@ -33,7 +33,11 @@ class LocalNotificationHelper(private val context: Context) {
             ).apply {
                 description = CHANNEL_DESCRIPTION
                 enableLights(true)
+                lightColor = android.graphics.Color.BLUE
                 enableVibration(true)
+                vibrationPattern = longArrayOf(0, 250, 250, 250)
+                setShowBadge(true)
+                lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
             }
             
             notificationManager.createNotificationChannel(channel)
@@ -116,11 +120,12 @@ class LocalNotificationHelper(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         
-        // Determine notification icon based on type
-        val notificationIcon = when (data["type"]) {
-            "return_reminder" -> "📚"
-            "overdue" -> "⚠️"
-            else -> "📱"
+        // Determine notification icon and color based on type
+        val (notificationIcon, color) = when (data["type"]) {
+            "return_reminder" -> "📚" to android.graphics.Color.BLUE
+            "overdue" -> "⚠️" to android.graphics.Color.RED
+            "system_test" -> "📲" to android.graphics.Color.GREEN
+            else -> "📱" to android.graphics.Color.BLUE
         }
         
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
@@ -133,7 +138,12 @@ class LocalNotificationHelper(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setSound(android.provider.Settings.System.DEFAULT_NOTIFICATION_URI)
-            .setVibrate(longArrayOf(1000, 1000, 1000, 1000, 1000))
+            .setVibrate(longArrayOf(0, 250, 250, 250))
+            .setColor(color)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setShowWhen(true)
+            .setWhen(System.currentTimeMillis())
             .build()
         
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)

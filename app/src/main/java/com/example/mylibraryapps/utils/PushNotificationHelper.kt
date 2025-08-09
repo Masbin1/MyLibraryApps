@@ -52,7 +52,7 @@ class PushNotificationHelper(private val context: Context? = null) {
     private suspend fun getActiveTransactions(): List<Transaction> {
         return try {
             val snapshot = db.collection("transactions")
-                .whereEqualTo("status", "dipinjam") // Fixed status consistency
+                .whereEqualTo("status", "sedang dipinjam") // Use consistent status
                 .limit(100) // Limit to prevent large queries
                 .get()
                 .await()

@@ -38,7 +38,7 @@
             android:id="@+id/btnTestSystemNotification"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📲 Test System Notification (Android Bar)"
+            android:text="🚀 Test WhatsApp-Style Notifications (3 Types)"
             android:layout_marginBottom="8dp"
             android:backgroundTint="@color/purple_primary" />
 
@@ -111,14 +111,14 @@
             android:id="@+id/btnShowNotificationRecords"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📋 Show Notification Records (Check Logcat)"
+            android:text="📋 Show All Notifications (Firebase + Records)"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnClearNotificationRecords"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🧹 Clear Notification Records"
+            android:text="🧹 Clear All Notifications (Firebase + Records)"
             android:layout_marginBottom="8dp" />
 
         <Button
@@ -159,6 +159,70 @@
             android:text="⏰ Schedule Alarm (Every 1 Hour)"
             android:layout_marginBottom="16dp"
             android:backgroundTint="#FF9800" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔥 Firebase Functions Testing"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnTestFirebaseFunctions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔥 Test Firebase Functions Manual Trigger"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#FF5722" />
+
+        <Button
+            android:id="@+id/btnCheckFirestoreNotifications"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔍 Check Firestore Notifications"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#3F51B5" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📝 Firebase Test Transactions"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnCreateOverdueTransaction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⚠️ Create Overdue Transaction (Firebase)"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#F44336" />
+
+        <Button
+            android:id="@+id/btnCreate3DayReminderTransaction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📅 Create 3-Day Reminder Transaction (Firebase)"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#2196F3" />
+
+        <Button
+            android:id="@+id/btnCreate2DayReminderTransaction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📅 Create 2-Day Reminder Transaction (Firebase)"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#2196F3" />
+
+        <Button
+            android:id="@+id/btnCreate1DayReminderTransaction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📅 Create 1-Day Reminder Transaction (Firebase)"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="#2196F3" />
 
         <TextView
             android:layout_width="match_parent"
