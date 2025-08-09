@@ -24,6 +24,7 @@ import com.bumptech.glide.Glide
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentAddBookBinding
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -247,6 +248,13 @@ class AddBookFragment : Fragment() {
     }
 
     private fun validateAndAddBook() {
+        // Periksa apakah user sudah login
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) {
+            Toast.makeText(requireContext(), "Anda harus login terlebih dahulu", Toast.LENGTH_LONG).show()
+            return
+        }
+        
         val title = binding.etTitle.text.toString().trim()
         val author = binding.etAuthor.text.toString().trim()
         val genre = binding.actvGenre.text.toString().trim()

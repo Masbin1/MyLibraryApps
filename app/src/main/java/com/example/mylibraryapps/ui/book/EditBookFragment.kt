@@ -25,6 +25,7 @@ import com.example.mylibraryapps.model.Book
 import com.example.mylibraryapps.data.BookRepository
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Calendar
 
@@ -259,6 +260,13 @@ class EditBookFragment : Fragment() {
     }
 
     private fun updateBook() {
+        // Periksa apakah user sudah login
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) {
+            Toast.makeText(requireContext(), "Anda harus login terlebih dahulu", Toast.LENGTH_LONG).show()
+            return
+        }
+        
         // Validate inputs
         if (binding.etTitle.text.isNullOrEmpty() ||
             binding.etAuthor.text.isNullOrEmpty() ||
