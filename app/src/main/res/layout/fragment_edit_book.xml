@@ -297,19 +297,22 @@
             android:textSize="14sp" />
 
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            app:boxBackgroundMode="outline"
+            android:hint="Pilih Genre"
+            android:textColorHint="#888888"
             app:boxStrokeColor="#AAAAAA">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etGenre"
+            <AutoCompleteTextView
+                android:id="@+id/actvGenre"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint=""
-                android:textColor="#000000"
-                android:textColorHint="#888888" />
+                android:clickable="true"
+                android:focusable="false"
+                android:inputType="none"
+                android:textColor="#000000" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Buttons -->

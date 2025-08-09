@@ -13,6 +13,7 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -98,6 +99,7 @@ class EditBookFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         book = arguments?.getParcelable("book") ?: return
+        setupGenreDropdown()
         populateFormWithBookData()
 
         binding.btnSave.setOnClickListener {
@@ -118,6 +120,13 @@ class EditBookFragment : Fragment() {
         }
     }
 
+    private fun setupGenreDropdown() {
+        val genres = resources.getStringArray(R.array.book_types)
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, genres)
+        binding.actvGenre.setAdapter(adapter)
+        binding.actvGenre.setOnClickListener { binding.actvGenre.showDropDown() }
+    }
+
     private fun populateFormWithBookData() {
         binding.etTitle.setText(book.title)
         binding.etAuthor.setText(book.author)
@@ -126,7 +135,7 @@ class EditBookFragment : Fragment() {
         binding.etSpecifications.setText(book.specifications)
         binding.etMaterial.setText(book.material)
         binding.etQuantity.setText(book.quantity.toString())
-        binding.etGenre.setText(book.genre)
+        binding.actvGenre.setText(book.genre, false)
         
         // Load existing cover if available
         if (book.coverUrl.isNotEmpty()) {
@@ -295,7 +304,7 @@ class EditBookFragment : Fragment() {
                 specifications = binding.etSpecifications.text.toString(),
                 material = binding.etMaterial.text.toString(),
                 quantity = binding.etQuantity.text.toString().toLong(),
-                genre = binding.etGenre.text.toString()
+                genre = binding.actvGenre.text.toString()
             )
 
             // Disable button to prevent multiple submissions
