@@ -1,6 +1,9 @@
 package com.example.mylibraryapps
 
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -27,6 +30,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import android.util.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedListener {
 
@@ -34,9 +38,24 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
     private lateinit var auth: FirebaseAuth
     private lateinit var navController: NavController
     private lateinit var repository: AppRepository
+    private lateinit var db: FirebaseFirestore
     
     // Flag to prevent rapid navigation
     private var isNavigating = false
+    
+    // BroadcastReceiver for notification updates
+    private val notificationReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.example.mylibraryapps.NOTIFICATION_RECEIVED") {
+                Log.d(TAG, "📡 Notification update broadcast received")
+                checkUnreadNotifications()
+            }
+        }
+    }
+    
+    companion object {
+        private const val TAG = "MainActivity"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,8 +71,9 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
             // Get repository from Application
             repository = (application as MyLibraryApplication).repository
 
-            // Initialize Firebase Auth
+            // Initialize Firebase Auth and Firestore
             auth = Firebase.auth
+            db = FirebaseFirestore.getInstance()
 
             // Check if user is logged in
             if (auth.currentUser == null) {
@@ -69,6 +89,9 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
             
             // Update FCM token for current user
             updateFCMToken()
+            
+            // Check for unread notifications
+            checkUnreadNotifications()
             
             // Observe repository error messages
             repository.errorMessage.observe(this) { errorMessage ->
@@ -213,6 +236,29 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
         // Double check auth state when activity resumes
         if (auth.currentUser == null) {
             redirectToLogin()
+        } else {
+            // Refresh notification count when app comes to foreground
+            checkUnreadNotifications()
+        }
+        
+        // Register broadcast receiver for notification updates
+        val filter = IntentFilter("com.example.mylibraryapps.NOTIFICATION_RECEIVED")
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(notificationReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(notificationReceiver, filter)
+        }
+        Log.d(TAG, "📡 Notification broadcast receiver registered")
+    }
+    
+    override fun onStop() {
+        super.onStop()
+        // Unregister broadcast receiver
+        try {
+            unregisterReceiver(notificationReceiver)
+            Log.d(TAG, "📡 Notification broadcast receiver unregistered")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error unregistering broadcast receiver", e)
         }
     }
     
@@ -244,6 +290,52 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
                 true
             }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+    
+    /**
+     * Check for unread notifications and update UI badge
+     */
+    private fun checkUnreadNotifications() {
+        val currentUser = auth.currentUser ?: return
+        
+        lifecycleScope.launch {
+            try {
+                val snapshot = db.collection("notifications")
+                    .whereEqualTo("userId", currentUser.uid)
+                    .whereEqualTo("isRead", false)
+                    .get()
+                    .await()
+                
+                val unreadCount = snapshot.documents.size
+                Log.d(TAG, "📊 Unread notifications: $unreadCount")
+                
+                // Send notification count to HomeFragment via broadcast
+                sendNotificationCountBroadcast(unreadCount)
+                
+                if (unreadCount > 0) {
+                    Log.d(TAG, "🔔 You have $unreadCount unread notifications")
+                    // You can show a toast or update UI here
+                    // Toast.makeText(this@MainActivity, "You have $unreadCount unread notifications", Toast.LENGTH_SHORT).show()
+                }
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error checking unread notifications", e)
+            }
+        }
+    }
+    
+    /**
+     * Send notification count to HomeFragment via broadcast
+     */
+    private fun sendNotificationCountBroadcast(count: Int) {
+        try {
+            val intent = Intent("com.example.mylibraryapps.NOTIFICATION_COUNT_UPDATE")
+            intent.putExtra("unread_count", count)
+            sendBroadcast(intent)
+            Log.d(TAG, "📡 Notification count broadcast sent: $count")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error sending notification count broadcast", e)
         }
     }
 }

@@ -5,7 +5,7 @@ import * as admin from 'firebase-admin';
 admin.initializeApp();
 
 // Import services
-import { checkOverdueBooks } from './services/notificationService';
+import { checkOverdueBooks, debugTransactionData } from './services/notificationService';
 
 // Scheduled function that runs daily at 9 AM Jakarta time (UTC+7)
 export const dailyBookReminderCheck = functions
@@ -31,7 +31,7 @@ export const manualBookReminderCheck = functions
   .region('asia-southeast2')
   .https
   .onRequest(async (req, res) => {
-    console.log('Manual book reminder check triggered');
+    console.log('🔥 Manual book reminder check triggered');
     
     try {
       await checkOverdueBooks();
@@ -40,7 +40,29 @@ export const manualBookReminderCheck = functions
         message: 'Book reminder check completed successfully' 
       });
     } catch (error) {
-      console.error('Error in manual book reminder check:', error);
+      console.error('❌ Error in manual book reminder check:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+// Debug function to check transaction data
+export const debugTransactions = functions
+  .region('asia-southeast2')
+  .https
+  .onRequest(async (req, res) => {
+    console.log('🔍 Debug transactions triggered');
+    
+    try {
+      await debugTransactionData();
+      res.status(200).json({ 
+        success: true, 
+        message: 'Debug transaction data completed successfully' 
+      });
+    } catch (error) {
+      console.error('❌ Error in debug transactions:', error);
       res.status(500).json({ 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error'

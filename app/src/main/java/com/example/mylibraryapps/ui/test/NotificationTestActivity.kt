@@ -79,7 +79,12 @@ class NotificationTestActivity : AppCompatActivity() {
         
         findViewById<Button>(R.id.btnTestSystemNotification).setOnClickListener {
             testHelper.testWhatsAppStyleNotifications()
-            Toast.makeText(this, "🚀 WhatsApp-style notifications sent! Check notification panel", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "🚀 WhatsApp-style notifications sent! Check notification panel & app badge", Toast.LENGTH_LONG).show()
+        }
+        
+        findViewById<Button>(R.id.btnTestImmediate).setOnClickListener {
+            testHelper.testDatabaseNotificationDirect()
+            Toast.makeText(this, "📚 Database notification created! Check app badge", Toast.LENGTH_LONG).show()
         }
         
         findViewById<Button>(R.id.btnCreate3DayTest).setOnClickListener {
@@ -185,8 +190,9 @@ class NotificationTestActivity : AppCompatActivity() {
         
         findViewById<Button>(R.id.btnCheckFirestoreNotifications).setOnClickListener {
             lifecycleScope.launch {
+                testHelper.debugFirebaseTransactions()
                 testHelper.checkNotificationsInFirestore()
-                Toast.makeText(this@NotificationTestActivity, "Check logcat for Firestore notifications", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@NotificationTestActivity, "Debug & Check triggered - check logcat & Firebase Console", Toast.LENGTH_LONG).show()
             }
         }
         

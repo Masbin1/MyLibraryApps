@@ -39,17 +39,20 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
         
-        Log.d(TAG, "From: ${remoteMessage.from}")
+        Log.d(TAG, "📱 FCM Message received from: ${remoteMessage.from}")
+        
+        // Save notification to database first
+        saveNotificationToDatabase(remoteMessage)
         
         // Check if message contains a data payload
         if (remoteMessage.data.isNotEmpty()) {
-            Log.d(TAG, "Message data payload: ${remoteMessage.data}")
+            Log.d(TAG, "📋 Message data payload: ${remoteMessage.data}")
             handleDataMessage(remoteMessage.data)
         }
         
         // Check if message contains a notification payload
         remoteMessage.notification?.let { notification ->
-            Log.d(TAG, "Message Notification Body: ${notification.body}")
+            Log.d(TAG, "💬 Message Notification Body: ${notification.body}")
             showNotification(
                 title = notification.title ?: "Library App",
                 body = notification.body ?: "",
@@ -167,6 +170,83 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
+        }
+    }
+    
+    /**
+     * Save received notification to Firebase database for in-app display
+     */
+    private fun saveNotificationToDatabase(remoteMessage: RemoteMessage) {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Log.e(TAG, "❌ No user logged in, cannot save notification to database")
+            return
+        }
+        
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Extract notification data
+                val title = remoteMessage.notification?.title 
+                    ?: remoteMessage.data["title"] 
+                    ?: "Library App"
+                    
+                val body = remoteMessage.notification?.body 
+                    ?: remoteMessage.data["body"] 
+                    ?: "New notification"
+                
+                val type = remoteMessage.data["type"] ?: "general"
+                val bookTitle = remoteMessage.data["bookTitle"]
+                val daysRemaining = remoteMessage.data["daysRemaining"]
+                val daysOverdue = remoteMessage.data["daysOverdue"]
+                val transactionId = remoteMessage.data["transactionId"]
+                
+                // Create notification document
+                val notificationData = mutableMapOf(
+                    "userId" to currentUser.uid,
+                    "title" to title,
+                    "message" to body,
+                    "type" to type,
+                    "isRead" to false,
+                    "createdAt" to com.google.firebase.Timestamp.now(),
+                    "timestamp" to System.currentTimeMillis(),
+                    "source" to "fcm" // Mark as received from FCM
+                )
+                
+                // Add extra data if available
+                bookTitle?.let { notificationData["bookTitle"] = it }
+                daysRemaining?.let { notificationData["daysRemaining"] = it }
+                daysOverdue?.let { notificationData["daysOverdue"] = it }
+                transactionId?.let { notificationData["transactionId"] = it }
+                
+                // Save to Firestore
+                db.collection("notifications")
+                    .add(notificationData)
+                    .await()
+                
+                Log.d(TAG, "✅ FCM notification saved to database successfully")
+                Log.d(TAG, "📋 Title: $title")
+                Log.d(TAG, "💬 Message: $body")
+                Log.d(TAG, "🏷️ Type: $type")
+                
+                // Send broadcast to update notification badge
+                sendNotificationUpdateBroadcast()
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to save FCM notification to database", e)
+            }
+        }
+    }
+    
+    /**
+     * Send broadcast to notify MainActivity to update notification badge
+     */
+    private fun sendNotificationUpdateBroadcast() {
+        try {
+            val intent = android.content.Intent("com.example.mylibraryapps.NOTIFICATION_RECEIVED")
+            sendBroadcast(intent)
+            Log.d(TAG, "📡 Notification update broadcast sent")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error sending notification broadcast", e)
         }
     }
 }

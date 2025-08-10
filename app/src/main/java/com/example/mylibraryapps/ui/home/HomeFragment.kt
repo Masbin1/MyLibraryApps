@@ -1,6 +1,10 @@
 package com.example.mylibraryapps.ui.home
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -36,6 +40,17 @@ class HomeFragment : Fragment() {
     private var notificationBadge: FrameLayout? = null
     private var searchTimer: android.os.CountDownTimer? = null
     private var currentFilter: String = "Semua"
+    
+    // Broadcast receiver untuk menerima update notification count
+    private val notificationCountReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.example.mylibraryapps.NOTIFICATION_COUNT_UPDATE") {
+                val unreadCount = intent.getIntExtra("unread_count", 0)
+                Log.d("HomeFragment", "📡 Received notification count update: $unreadCount")
+                updateNotificationBadge(unreadCount)
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -59,6 +74,7 @@ class HomeFragment : Fragment() {
         setupNotificationButton()
         setupSearchBar()
         setupDebugFeatures()
+        setupNotificationCountReceiver()
         
         // Dapatkan user ID dari Firebase Auth
         val currentUser = FirebaseAuth.getInstance().currentUser
@@ -137,8 +153,9 @@ class HomeFragment : Fragment() {
             binding.tvGreeting.text = "Halo, $name"
         }
         
-        // Observe notification count
+        // Observe notification count directly from ViewModel as backup
         notificationViewModel.unreadCount.observe(viewLifecycleOwner) { count ->
+            Log.d("HomeFragment", "📊 Direct unread count observer: $count")
             updateNotificationBadge(count)
         }
     }
@@ -154,53 +171,49 @@ class HomeFragment : Fragment() {
     }
     
     private fun createNotificationBadge() {
-        // Create a badge view to show unread count
-        val parent = binding.ivNotification.parent as ViewGroup
-        
-        // Remove existing badge if any
-        if (notificationBadge != null) {
-            parent.removeView(notificationBadge)
-        }
-        
-        // Create new badge
-        notificationBadge = FrameLayout(requireContext()).apply {
-            val size = resources.getDimensionPixelSize(R.dimen.notification_badge_size)
-            val params = FrameLayout.LayoutParams(size, size)
-            params.gravity = Gravity.TOP or Gravity.END
-            params.setMargins(0, 0, 0, 0)
-            layoutParams = params
+        // Wait for layout to be ready
+        binding.ivNotification.post {
+            // Get the FrameLayout container that holds the notification icon
+            val container = binding.ivNotification.parent as FrameLayout
             
-            background = ContextCompat.getDrawable(requireContext(), R.drawable.notification_badge)
-            visibility = View.GONE
-            
-            // Add text view for count
-            val textView = TextView(requireContext()).apply {
-                layoutParams = FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                ).apply {
-                    gravity = Gravity.CENTER
-                }
-                gravity = Gravity.CENTER
-                textSize = 10f
-                setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white))
+            // Remove existing badge if any
+            notificationBadge?.let { 
+                container.removeView(it)
+                notificationBadge = null
             }
             
-            addView(textView)
-        }
-        
-        // Add badge to parent layout
-        (binding.ivNotification.parent as ViewGroup).addView(notificationBadge)
-        
-        // Position badge relative to notification icon
-        val iconLocation = IntArray(2)
-        binding.ivNotification.getLocationInWindow(iconLocation)
-        
-        val badgeParams = notificationBadge?.layoutParams as? ViewGroup.MarginLayoutParams
-        badgeParams?.let {
-            it.leftMargin = iconLocation[0] + binding.ivNotification.width - it.width / 2
-            it.topMargin = iconLocation[1] - it.height / 2
-            notificationBadge?.layoutParams = it
+            // Create new badge
+            notificationBadge = FrameLayout(requireContext()).apply {
+                val size = resources.getDimensionPixelSize(R.dimen.notification_badge_size)
+                val params = FrameLayout.LayoutParams(size, size).apply {
+                    gravity = Gravity.TOP or Gravity.END
+                    topMargin = 0
+                    rightMargin = 0
+                }
+                
+                layoutParams = params
+                background = ContextCompat.getDrawable(requireContext(), R.drawable.notification_badge)
+                visibility = View.GONE
+                elevation = 8f
+                
+                // Add text view for count
+                val textView = TextView(requireContext()).apply {
+                    layoutParams = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                    gravity = Gravity.CENTER
+                    textSize = 10f
+                    setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white))
+                    typeface = android.graphics.Typeface.DEFAULT_BOLD
+                }
+                
+                addView(textView)
+            }
+            
+            // Add badge to container
+            container.addView(notificationBadge)
+            Log.d("HomeFragment", "🎯 Notification badge created and positioned")
         }
     }
     
@@ -211,15 +224,33 @@ class HomeFragment : Fragment() {
             if (count > 0) {
                 textView?.text = if (count > 99) "99+" else count.toString()
                 badge.visibility = View.VISIBLE
+                Log.d("HomeFragment", "🔴 Badge updated: $count notifications")
             } else {
                 badge.visibility = View.GONE
+                Log.d("HomeFragment", "✅ Badge hidden: no unread notifications")
             }
         }
+    }
+    
+    private fun setupNotificationCountReceiver() {
+        val filter = IntentFilter("com.example.mylibraryapps.NOTIFICATION_COUNT_UPDATE")
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            requireContext().registerReceiver(notificationCountReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            requireContext().registerReceiver(notificationCountReceiver, filter)
+        }
+        Log.d("HomeFragment", "📡 Notification count receiver registered")
     }
     
     private fun showNotificationPopup() {
         // Dismiss existing popup if any
         notificationPopup?.dismiss()
+        
+        // Reload notifications when popup is opened
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        currentUser?.uid?.let { userId ->
+            notificationViewModel.loadNotifications(userId)
+        }
         
         // Inflate popup layout
         val inflater = LayoutInflater.from(requireContext())
@@ -253,39 +284,61 @@ class HomeFragment : Fragment() {
             adapter = notificationAdapter
         }
         
-        // Observe notifications
+        // Observe notifications - use removeObservers to avoid duplicate observers
+        notificationViewModel.notifications.removeObservers(viewLifecycleOwner)
         notificationViewModel.notifications.observe(viewLifecycleOwner) { notifications ->
+            Log.d("HomeFragment", "📋 Popup received ${notifications.size} notifications")
             notificationAdapter.submitList(notifications)
             
             if (notifications.isEmpty()) {
                 tvEmptyNotifications.visibility = View.VISIBLE
                 rvNotifications.visibility = View.GONE
+                Log.d("HomeFragment", "📋 Showing empty state")
             } else {
                 tvEmptyNotifications.visibility = View.GONE
                 rvNotifications.visibility = View.VISIBLE
+                Log.d("HomeFragment", "📋 Showing ${notifications.size} notifications")
             }
         }
         
         // Observe loading state
+        notificationViewModel.isLoading.removeObservers(viewLifecycleOwner)
         notificationViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            Log.d("HomeFragment", "📋 Loading state: $isLoading")
         }
         
         // Mark all as read button
         tvMarkAllRead.setOnClickListener {
             val currentUser = FirebaseAuth.getInstance().currentUser
             currentUser?.uid?.let { userId ->
+                Log.d("HomeFragment", "📋 Marking all notifications as read for user: $userId")
                 notificationViewModel.markAllAsRead(userId)
+                // Reload notifications after marking as read
+                notificationViewModel.loadNotifications(userId)
             }
         }
         
         // Show popup
-        notificationPopup?.showAsDropDown(binding.ivNotification, 0, 10)
+        try {
+            notificationPopup?.showAsDropDown(binding.ivNotification, 0, 10)
+            Log.d("HomeFragment", "📋 Notification popup shown")
+        } catch (e: Exception) {
+            Log.e("HomeFragment", "❌ Error showing notification popup", e)
+        }
     }
     
     private fun handleNotificationClick(notification: Notification) {
+        Log.d("HomeFragment", "📋 Notification clicked: ${notification.title}")
+        
         // Mark notification as read
         notificationViewModel.markAsRead(notification.id)
+        
+        // Reload notifications to update badge count
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        currentUser?.uid?.let { userId ->
+            notificationViewModel.loadNotifications(userId)
+        }
         
         // Close popup first
         notificationPopup?.dismiss()
@@ -470,6 +523,21 @@ class HomeFragment : Fragment() {
             }
             lastTapTime = currentTime
         }
+        
+        // Long press pada notification icon untuk create test notification
+        binding.ivNotification.setOnLongClickListener {
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            currentUser?.uid?.let { userId ->
+                Log.d("HomeFragment", "Creating test notification...")
+                notificationViewModel.createTestNotification(userId)
+                com.google.android.material.snackbar.Snackbar.make(
+                    binding.root,
+                    "Test notification created!",
+                    com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
+                ).show()
+            }
+            true
+        }
     }
 
 
@@ -479,6 +547,15 @@ class HomeFragment : Fragment() {
         searchTimer = null
         notificationPopup?.dismiss()
         notificationPopup = null
+        
+        // Unregister broadcast receiver
+        try {
+            requireContext().unregisterReceiver(notificationCountReceiver)
+            Log.d("HomeFragment", "📡 Notification count receiver unregistered")
+        } catch (e: Exception) {
+            Log.e("HomeFragment", "❌ Error unregistering notification count receiver", e)
+        }
+        
         _binding = null
     }
 

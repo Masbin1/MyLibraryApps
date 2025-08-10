@@ -199,6 +199,54 @@ class NotificationTestHelper(private val context: Context) {
         Log.d(TAG, "🚀 WhatsApp-style notifications sent! Check your notification panel.")
         Log.d(TAG, "📱 You should see 3 notifications appearing with 2-second intervals")
         Log.d(TAG, "💾 Notifications also saved to Firebase 'notifications' collection")
+        Log.d(TAG, "🔴 Check app icon for notification badge!")
+    }
+    
+    /**
+     * Test notification that directly saves to database (simulates FCM)
+     */
+    fun testDatabaseNotificationDirect() {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Log.e(TAG, "No user logged in")
+            return
+        }
+        
+        // Simulate FCM notification data
+        val title = "📚 Test Database Notification"
+        val message = "This notification is saved directly to Firebase database for testing badge functionality!"
+        val type = "test_database"
+        
+        // Save to Firebase (simulating what FCM Service does)
+        val notificationData = mapOf(
+            "userId" to currentUser.uid,
+            "title" to title,
+            "message" to message,
+            "type" to type,
+            "isRead" to false,
+            "createdAt" to com.google.firebase.Timestamp.now(),
+            "timestamp" to System.currentTimeMillis(),
+            "source" to "test" // Mark as test notification
+        )
+        
+        db.collection("notifications")
+            .add(notificationData)
+            .addOnSuccessListener { documentReference ->
+                Log.d(TAG, "✅ Test notification saved to database with ID: ${documentReference.id}")
+                Log.d(TAG, "🔴 Check app for notification badge update!")
+                
+                // Send broadcast to update badge (simulating FCM Service)
+                val intent = android.content.Intent("com.example.mylibraryapps.NOTIFICATION_RECEIVED")
+                context.sendBroadcast(intent)
+                Log.d(TAG, "📡 Badge update broadcast sent")
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "❌ Error saving test notification to database", e)
+            }
+        
+        // Also show local notification
+        val localNotificationHelper = LocalNotificationHelper(context)
+        localNotificationHelper.showSystemNotification(title, message, mapOf("type" to type))
     }
     
     /**
@@ -416,6 +464,50 @@ class NotificationTestHelper(private val context: Context) {
             Log.d(TAG, "Real FCM token updated: $token")
         } catch (e: Exception) {
             Log.e(TAG, "Error updating FCM token", e)
+        }
+    }
+    
+    /**
+     * Debug Firebase Functions - Check transaction data
+     */
+    suspend fun debugFirebaseTransactions() {
+        try {
+            withContext(Dispatchers.IO) {
+                val projectId = FirebaseApp.getInstance().options.projectId
+                val functionUrl = "https://asia-southeast2-$projectId.cloudfunctions.net/debugTransactions"
+                
+                Log.d(TAG, "🔍 Calling Debug Firebase Functions...")
+                Log.d(TAG, "📡 Project ID: $projectId")
+                Log.d(TAG, "📡 URL: $functionUrl")
+                
+                val url = URL(functionUrl)
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 30000
+                connection.readTimeout = 30000
+                connection.setRequestProperty("Content-Type", "application/json")
+                
+                val responseCode = connection.responseCode
+                val response = if (responseCode == 200) {
+                    connection.inputStream.bufferedReader().readText()
+                } else {
+                    connection.errorStream?.bufferedReader()?.readText() ?: "No error message"
+                }
+                
+                Log.d(TAG, "🔍 Debug Functions Response Code: $responseCode")
+                Log.d(TAG, "📝 Debug Functions Response: $response")
+                
+                if (responseCode == 200) {
+                    Log.d(TAG, "✅ Debug Functions executed successfully!")
+                    Log.d(TAG, "📋 Check Firebase Console for detailed transaction data")
+                } else {
+                    Log.e(TAG, "❌ Debug Functions failed with code: $responseCode")
+                }
+                
+                connection.disconnect()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error calling Debug Firebase Functions", e)
         }
     }
     
