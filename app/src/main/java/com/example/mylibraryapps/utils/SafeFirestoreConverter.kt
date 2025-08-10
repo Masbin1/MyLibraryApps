@@ -40,22 +40,27 @@ object SafeFirestoreConverter {
      */
     fun documentToNotification(document: DocumentSnapshot): Notification? {
         return try {
+            // Log raw document data untuk debugging
+            Log.d(TAG, "Raw document data: ${document.data}")
+            
             val notification = Notification(
                 id = document.getString("id") ?: document.id,
                 userId = document.getString("userId") ?: "",
                 title = document.getString("title") ?: "",
                 message = document.getString("message") ?: "",
-                timestamp = FirestoreConverters.convertToDate(document.get("timestamp")),
+                // Gunakan createdAt sesuai struktur Firebase, fallback ke timestamp
+                timestamp = FirestoreConverters.convertToDate(document.get("createdAt") ?: document.get("timestamp")),
                 isRead = FirestoreConverters.convertToBoolean(document.get("isRead")),
                 type = document.getString("type") ?: "general",
                 relatedItemId = document.getString("relatedItemId") ?: "",
                 relatedItemTitle = document.getString("relatedItemTitle") ?: "",
                 transactionId = document.getString("transactionId") ?: ""
             )
-            Log.d(TAG, "Successfully converted document to Notification: ${notification.id}")
+            Log.d(TAG, "Successfully converted document to Notification: ${notification.id} - ${notification.title}")
             notification
         } catch (e: Exception) {
             Log.e(TAG, "Error converting document to Notification: ${document.id}", e)
+            Log.e(TAG, "Document data was: ${document.data}")
             null
         }
     }

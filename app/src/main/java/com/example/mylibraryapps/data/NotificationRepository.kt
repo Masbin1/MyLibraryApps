@@ -15,36 +15,70 @@ class NotificationRepository {
     private val notificationsCollection = db.collection("notifications")
 
     fun getNotifications(userId: String): Flow<List<Notification>> = callbackFlow {
+        android.util.Log.d("NotificationRepository", "🔍 Setting up listener for user: $userId")
+        
         val listener = notificationsCollection
             .whereEqualTo("userId", userId)
-            .orderBy("timestamp", Query.Direction.DESCENDING)
+            // Sementara tanpa ordering untuk testing
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    android.util.Log.e("NotificationRepository", "❌ Error getting notifications", error)
                     close(error)
                     return@addSnapshotListener
                 }
 
+                android.util.Log.d("NotificationRepository", "📡 Received snapshot with ${snapshot?.documents?.size ?: 0} documents")
+
                 val notifications = snapshot?.documents?.mapNotNull { doc ->
+                    android.util.Log.d("NotificationRepository", "📄 Processing document: ${doc.id}")
+                    android.util.Log.d("NotificationRepository", "📄 Document data: ${doc.data}")
                     SafeFirestoreConverter.documentToNotification(doc)
                 } ?: emptyList()
 
-                // Filter out notifications for completed transactions
-                val activeNotifications = notifications.filter { notification ->
-                    // Keep general notifications and notifications for active transactions
-                    notification.type == "general" || notification.relatedItemId.isNotEmpty()
+                android.util.Log.d("NotificationRepository", "✅ Converted ${notifications.size} notifications")
+
+                // Log setiap notification untuk debugging
+                notifications.forEachIndexed { index, notification ->
+                    android.util.Log.d("NotificationRepository", "📋 Notification $index: ID=${notification.id}, Title=${notification.title}, Type=${notification.type}")
                 }
 
-                trySend(activeNotifications)
+                // Tidak filter apapun dulu, kirim semua notifications
+                android.util.Log.d("NotificationRepository", "🎯 Sending ALL ${notifications.size} notifications (no filtering)")
+                trySend(notifications)
             }
 
-        awaitClose { listener.remove() }
+        awaitClose { 
+            android.util.Log.d("NotificationRepository", "🔚 Removing listener for user: $userId")
+            listener.remove() 
+        }
     }
 
     suspend fun addNotification(notification: Notification): Boolean {
         return try {
-            notificationsCollection.add(notification).await()
+            android.util.Log.d("NotificationRepository", "➕ Adding notification: ${notification.title}")
+            
+            // Create a copy with proper ID
+            val docRef = notificationsCollection.document()
+            val notificationWithId = notification.copy(id = docRef.id)
+            
+            // Convert to map dengan field yang sesuai struktur Firebase
+            val notificationMap = mapOf(
+                "id" to notificationWithId.id,
+                "userId" to notificationWithId.userId,
+                "title" to notificationWithId.title,
+                "message" to notificationWithId.message,
+                "createdAt" to notificationWithId.timestamp, // Gunakan createdAt
+                "isRead" to notificationWithId.isRead,
+                "type" to notificationWithId.type,
+                "transactionId" to notificationWithId.transactionId
+            )
+            
+            docRef.set(notificationMap).await()
+            android.util.Log.d("NotificationRepository", "✅ Notification added with ID: ${docRef.id}")
+            android.util.Log.d("NotificationRepository", "✅ Data saved: $notificationMap")
             true
         } catch (e: Exception) {
+            android.util.Log.e("NotificationRepository", "❌ Error adding notification", e)
             false
         }
     }

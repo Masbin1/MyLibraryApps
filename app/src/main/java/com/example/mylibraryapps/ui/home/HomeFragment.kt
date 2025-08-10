@@ -304,29 +304,35 @@ class HomeFragment : Fragment() {
     }
     
     private fun showNotificationPopup() {
+        Log.d("HomeFragment", "🔔 Starting to show notification popup")
+        
         // Dismiss existing popup if any
         notificationPopup?.dismiss()
         
-        // Reload notifications when popup is opened
+        // Get current user
         val currentUser = FirebaseAuth.getInstance().currentUser
-        currentUser?.uid?.let { userId ->
-            notificationViewModel.loadNotifications(userId)
+        if (currentUser == null) {
+            Log.e("HomeFragment", "❌ No current user found")
+            return
         }
+        
+        Log.d("HomeFragment", "👤 Current user: ${currentUser.uid}")
         
         // Inflate popup layout
         val inflater = LayoutInflater.from(requireContext())
         val popupView = inflater.inflate(R.layout.popup_notifications, null)
         
-        // Create popup window
+        // Create popup window with fixed size
         notificationPopup = PopupWindow(
             popupView,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
+            800, // Fixed width
+            600, // Fixed height
             true
         ).apply {
             elevation = 10f
-            setBackgroundDrawable(ContextCompat.getDrawable(requireContext(), android.R.color.transparent))
+            setBackgroundDrawable(ContextCompat.getDrawable(requireContext(), android.R.color.white))
             isOutsideTouchable = true
+            isFocusable = true
         }
         
         // Setup RecyclerView
@@ -334,6 +340,11 @@ class HomeFragment : Fragment() {
         val progressBar = popupView.findViewById<View>(R.id.progressBar)
         val tvEmptyNotifications = popupView.findViewById<TextView>(R.id.tvEmptyNotifications)
         val tvMarkAllRead = popupView.findViewById<TextView>(R.id.tvMarkAllRead)
+        
+        // Show loading initially
+        progressBar.visibility = View.VISIBLE
+        tvEmptyNotifications.visibility = View.GONE
+        rvNotifications.visibility = View.GONE
         
         // Setup adapter
         notificationAdapter = NotificationAdapter { notification ->
@@ -343,12 +354,66 @@ class HomeFragment : Fragment() {
         rvNotifications.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = notificationAdapter
+            setHasFixedSize(true)
         }
         
-        // Observe notifications - use removeObservers to avoid duplicate observers
+        // Show popup first
+        try {
+            // Calculate position
+            val location = IntArray(2)
+            binding.ivNotification.getLocationOnScreen(location)
+            
+            notificationPopup?.showAtLocation(
+                binding.root,
+                android.view.Gravity.NO_GRAVITY,
+                location[0] - 200, // Offset to left
+                location[1] + binding.ivNotification.height + 10 // Below the icon
+            )
+            Log.d("HomeFragment", "✅ Notification popup shown at position: ${location[0]}, ${location[1]}")
+        } catch (e: Exception) {
+            Log.e("HomeFragment", "❌ Error showing notification popup", e)
+            return
+        }
+        
+        // Setup observers after popup is shown
+        setupNotificationObservers(rvNotifications, progressBar, tvEmptyNotifications)
+        
+        // Mark all as read button
+        tvMarkAllRead.setOnClickListener {
+            Log.d("HomeFragment", "📋 Marking all notifications as read for user: ${currentUser.uid}")
+            notificationViewModel.markAllAsRead(currentUser.uid)
+            // Reload notifications after marking as read
+            notificationViewModel.loadNotifications(currentUser.uid)
+        }
+        
+        // Load notifications after popup is shown
+        Log.d("HomeFragment", "📡 Loading notifications for user: ${currentUser.uid}")
+        notificationViewModel.loadNotifications(currentUser.uid)
+    }
+    
+    private fun setupNotificationObservers(
+        rvNotifications: RecyclerView,
+        progressBar: View,
+        tvEmptyNotifications: TextView
+    ) {
+        // Remove existing observers to avoid duplicates
         notificationViewModel.notifications.removeObservers(viewLifecycleOwner)
+        notificationViewModel.isLoading.removeObservers(viewLifecycleOwner)
+        
+        // Observe notifications
         notificationViewModel.notifications.observe(viewLifecycleOwner) { notifications ->
-            Log.d("HomeFragment", "📋 Popup received ${notifications.size} notifications")
+            Log.d("HomeFragment", "📋 Popup received ${notifications?.size ?: 0} notifications")
+            
+            if (notifications == null) {
+                Log.w("HomeFragment", "⚠️ Notifications list is null")
+                return@observe
+            }
+            
+            // Log each notification for debugging
+            notifications.forEachIndexed { index, notification ->
+                Log.d("HomeFragment", "📋 Notification $index: ${notification.title} - ${notification.message}")
+            }
+            
             notificationAdapter.submitList(notifications)
             
             if (notifications.isEmpty()) {
@@ -358,34 +423,18 @@ class HomeFragment : Fragment() {
             } else {
                 tvEmptyNotifications.visibility = View.GONE
                 rvNotifications.visibility = View.VISIBLE
-                Log.d("HomeFragment", "📋 Showing ${notifications.size} notifications")
+                Log.d("HomeFragment", "📋 Showing ${notifications.size} notifications in RecyclerView")
             }
         }
         
         // Observe loading state
-        notificationViewModel.isLoading.removeObservers(viewLifecycleOwner)
         notificationViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
             Log.d("HomeFragment", "📋 Loading state: $isLoading")
-        }
-        
-        // Mark all as read button
-        tvMarkAllRead.setOnClickListener {
-            val currentUser = FirebaseAuth.getInstance().currentUser
-            currentUser?.uid?.let { userId ->
-                Log.d("HomeFragment", "📋 Marking all notifications as read for user: $userId")
-                notificationViewModel.markAllAsRead(userId)
-                // Reload notifications after marking as read
-                notificationViewModel.loadNotifications(userId)
+            
+            if (!isLoading) {
+                Log.d("HomeFragment", "✅ Loading completed")
             }
-        }
-        
-        // Show popup
-        try {
-            notificationPopup?.showAsDropDown(binding.ivNotification, 0, 10)
-            Log.d("HomeFragment", "📋 Notification popup shown")
-        } catch (e: Exception) {
-            Log.e("HomeFragment", "❌ Error showing notification popup", e)
         }
     }
     

@@ -124,6 +124,7 @@
             android:paddingHorizontal="16dp"
             android:paddingBottom="8dp"
             android:visibility="gone"
+            android:elevation="4dp"
             app:layout_scrollFlags="noScroll">
 
             <LinearLayout
