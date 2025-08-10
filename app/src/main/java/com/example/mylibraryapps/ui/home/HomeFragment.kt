@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -338,8 +339,8 @@ class HomeFragment : Fragment() {
         // Setup RecyclerView
         val rvNotifications = popupView.findViewById<RecyclerView>(R.id.rvNotifications)
         val progressBar = popupView.findViewById<View>(R.id.progressBar)
-        val tvEmptyNotifications = popupView.findViewById<TextView>(R.id.tvEmptyNotifications)
-        val tvMarkAllRead = popupView.findViewById<TextView>(R.id.tvMarkAllRead)
+        val tvEmptyNotifications = popupView.findViewById<LinearLayout>(R.id.tvEmptyNotifications)
+        val tvMarkAllRead = popupView.findViewById<com.google.android.material.button.MaterialButton>(R.id.tvMarkAllRead)
         
         // Show loading initially
         progressBar.visibility = View.VISIBLE
@@ -394,7 +395,7 @@ class HomeFragment : Fragment() {
     private fun setupNotificationObservers(
         rvNotifications: RecyclerView,
         progressBar: View,
-        tvEmptyNotifications: TextView
+        tvEmptyNotifications: LinearLayout
     ) {
         // Remove existing observers to avoid duplicates
         notificationViewModel.notifications.removeObservers(viewLifecycleOwner)

@@ -32,25 +32,41 @@ class NotificationAdapter(
         private val tvMessage: TextView = itemView.findViewById(R.id.tvNotificationMessage)
         private val tvTime: TextView = itemView.findViewById(R.id.tvNotificationTime)
         private val viewUnreadIndicator: View = itemView.findViewById(R.id.viewUnreadIndicator)
+        private val viewUnreadBorder: View = itemView.findViewById(R.id.viewUnreadBorder)
 
         fun bind(notification: Notification) {
             tvTitle.text = notification.title
             tvMessage.text = notification.message
             
-            // Format relative time
-            val relativeTime = DateUtils.getRelativeTimeSpanString(
-                notification.timestamp.time,
-                Calendar.getInstance().timeInMillis,
-                DateUtils.MINUTE_IN_MILLIS
-            )
+            // Format relative time dengan format yang lebih singkat
+            val relativeTime = formatRelativeTime(notification.timestamp.time)
             tvTime.text = relativeTime
             
-            // Show/hide unread indicator
-            viewUnreadIndicator.visibility = if (notification.isRead) View.INVISIBLE else View.VISIBLE
+            // Show/hide unread indicators
+            val isUnread = !notification.isRead
+            viewUnreadIndicator.visibility = if (isUnread) View.VISIBLE else View.INVISIBLE
+            viewUnreadBorder.visibility = if (isUnread) View.VISIBLE else View.GONE
             
             // Set click listener
             itemView.setOnClickListener {
                 onNotificationClick(notification)
+            }
+        }
+        
+        private fun formatRelativeTime(timestamp: Long): String {
+            val now = Calendar.getInstance().timeInMillis
+            val diff = now - timestamp
+            
+            return when {
+                diff < DateUtils.MINUTE_IN_MILLIS -> "Baru"
+                diff < DateUtils.HOUR_IN_MILLIS -> "${diff / DateUtils.MINUTE_IN_MILLIS}m"
+                diff < DateUtils.DAY_IN_MILLIS -> "${diff / DateUtils.HOUR_IN_MILLIS}j"
+                diff < DateUtils.WEEK_IN_MILLIS -> "${diff / DateUtils.DAY_IN_MILLIS}h"
+                else -> DateUtils.getRelativeTimeSpanString(
+                    timestamp,
+                    now,
+                    DateUtils.WEEK_IN_MILLIS
+                ).toString()
             }
         }
     }
