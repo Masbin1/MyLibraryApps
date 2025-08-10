@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragmentHome"
@@ -7,11 +7,13 @@
     android:layout_height="match_parent"
     android:background="#F6F6F6">
 
-    <!-- Layout utama dalam ScrollView agar konten tidak terpotong -->
-    <LinearLayout
+    <!-- AppBarLayout untuk sticky header -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
 
         <!-- Header -->
         <LinearLayout
@@ -19,7 +21,8 @@
             android:layout_height="wrap_content"
             android:background="@color/purple_primary"
             android:orientation="horizontal"
-            android:padding="16dp">
+            android:padding="16dp"
+            app:layout_scrollFlags="scroll|enterAlways">
 
             <TextView
                 android:id="@+id/tvGreeting"
@@ -52,13 +55,15 @@
             </FrameLayout>
         </LinearLayout>
 
-        <!-- Konten scrollable -->
+        <!-- Search Bar dan Filter - akan scroll bersama header -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:paddingTop="0dp"
+            android:background="#F6F6F6"
+            app:layout_scrollFlags="scroll|enterAlways">
 
             <!-- Search Bar -->
             <androidx.cardview.widget.CardView
@@ -107,68 +112,86 @@
                     app:singleLine="true"
                     app:chipSpacing="12dp" />
             </HorizontalScrollView>
+        </LinearLayout>
 
-            <!-- Recommendations Section -->
+        <!-- Sticky Recommendations Section - TIDAK akan scroll -->
+        <LinearLayout
+            android:id="@+id/layoutRecommendations"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#F6F6F6"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="8dp"
+            android:visibility="gone"
+            app:layout_scrollFlags="noScroll">
+
             <LinearLayout
-                android:id="@+id/layoutRecommendations"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="12dp"
-                android:visibility="gone">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_star"
+                    app:tint="@color/orange_500"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
+                    android:layout_weight="1"
+                    android:text="Rekomendasi untuk Anda"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_star"
-                        app:tint="@color/orange_500"
-                        android:layout_marginEnd="8dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Rekomendasi untuk Anda"
-                        android:textColor="@color/black"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <ProgressBar
-                        android:id="@+id/progressRecommendations"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:visibility="gone" />
-
-                </LinearLayout>
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvRecommendations"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clipToPadding="false"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:orientation="horizontal"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    tools:listitem="@layout/item_recommendation" />
+                <ProgressBar
+                    android:id="@+id/progressRecommendations"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:visibility="gone" />
 
             </LinearLayout>
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvRecommendations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_recommendation" />
+
             <!-- Divider -->
             <View
+                android:id="@+id/dividerRecommendations"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@color/gray_300"
-                android:layout_marginVertical="16dp"
-                android:visibility="gone"
-                android:id="@+id/dividerRecommendations" />
+                android:layout_marginTop="12dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Scrollable content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
             <!-- Progress Bar -->
             <ProgressBar
@@ -178,17 +201,18 @@
                 android:layout_gravity="center"
                 android:visibility="gone" />
 
-            <!-- RecyclerView -->
+            <!-- RecyclerView untuk list buku -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvBooks"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:layout_marginTop="12dp"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
                 app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                 app:spanCount="2" />
+
         </LinearLayout>
-    </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
 
     <!-- Floating Action Button -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
@@ -203,4 +227,4 @@
         app:backgroundTint="@color/purple_primary"
         app:tint="@android:color/white"/>
 
-</FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

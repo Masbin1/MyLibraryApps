@@ -131,6 +131,8 @@ class HomeFragment : Fragment() {
             layoutManager = GridLayoutManager(requireContext(), 2)
             adapter = bookAdapter
             setHasFixedSize(true)
+            // Disable nested scrolling karena sudah ada NestedScrollView sebagai parent
+            isNestedScrollingEnabled = false
         }
     }
     
@@ -152,6 +154,8 @@ class HomeFragment : Fragment() {
             layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
             adapter = recommendationAdapter
             setHasFixedSize(true)
+            // Disable nested scrolling untuk horizontal RecyclerView
+            isNestedScrollingEnabled = false
         }
     }
 
@@ -204,6 +208,8 @@ class HomeFragment : Fragment() {
                 binding.layoutRecommendations.visibility = View.VISIBLE
                 binding.dividerRecommendations.visibility = View.VISIBLE
                 recommendationAdapter.submitList(recommendations)
+                
+                Log.d("HomeFragment", "✨ Recommendations section is now STICKY - will remain visible when scrolling!")
             }
         }
         
