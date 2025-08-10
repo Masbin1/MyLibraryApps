@@ -3,6 +3,7 @@ package com.example.mylibraryapps.utils
 import android.content.Context
 import android.util.Log
 import com.example.mylibraryapps.model.Transaction
+import com.example.mylibraryapps.utils.SafeFirestoreConverter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.RemoteMessage
@@ -59,7 +60,7 @@ class PushNotificationHelper(private val context: Context? = null) {
             
             snapshot.documents.mapNotNull { doc ->
                 try {
-                    doc.toObject(Transaction::class.java)?.copy(id = doc.id)
+                    SafeFirestoreConverter.documentToTransaction(doc)
                 } catch (e: Exception) {
                     Log.e(TAG, "Error parsing transaction ${doc.id}", e)
                     null

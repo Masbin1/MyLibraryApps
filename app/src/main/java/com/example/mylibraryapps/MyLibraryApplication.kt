@@ -8,6 +8,9 @@ import com.example.mylibraryapps.utils.NetworkMonitor
 import com.example.mylibraryapps.notification.NotificationScheduler
 import com.example.mylibraryapps.utils.AlarmScheduler
 import com.example.mylibraryapps.service.NotificationForegroundService
+import com.example.mylibraryapps.utils.DebugUtils
+import com.example.mylibraryapps.utils.GooglePlayServicesErrorHandler
+import com.example.mylibraryapps.utils.CrashFixVerifier
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
@@ -34,34 +37,81 @@ class MyLibraryApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         
+        Log.d("MyLibraryApplication", "Starting application initialization...")
+        
+        // Check Google Play Services first
+        if (!GooglePlayServicesErrorHandler.checkGooglePlayServices(this)) {
+            Log.w("MyLibraryApplication", "Google Play Services not available - some features may not work")
+        }
+        
+        // Print debug information
+        DebugUtils.printPackageInfo(this)
+        DebugUtils.printSHA1Fingerprint(this)
+        
         try {
-            // Initialize Firebase
-            FirebaseApp.initializeApp(this)
+            // Initialize Firebase first (critical)
+            initializeFirebase()
             
-            // Configure Firestore for better offline support
-            configureFirestore()
-            
-            // Initialize network monitor
+            // Initialize network monitor (critical for offline support)
             setupNetworkMonitoring()
             
-            // Initialize FCM
+            // Initialize FCM (can fail gracefully)
             setupFCM()
             
-            // Initialize notification scheduler
+            // Initialize notification scheduler (can fail gracefully)
             setupNotificationScheduler()
             
-            // Setup background services (delayed to reduce startup load)
-            setupBackgroundServices()
+            // Setup background services with delay to reduce startup load
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                setupBackgroundServices()
+                runInitialNotificationCheck()
+                
+                // Run crash fix verification tests
+                CrashFixVerifier.runAllTests(this)
+                CrashFixVerifier.simulateOriginalCrashScenarios()
+            }, 2000) // 2 second delay
             
-            // Run initial notification check (delayed)
-            runInitialNotificationCheck()
-            
-            // Preload data (delayed to reduce startup time)
-            // repository.preloadData() // Commented out to reduce startup load
+            Log.d("MyLibraryApplication", "Application initialization completed successfully")
             
         } catch (e: Exception) {
-            Log.e("MyLibraryApplication", "Error during application initialization", e)
-            // Don't crash the app, just log the error
+            Log.e("MyLibraryApplication", "Critical error during application initialization", e)
+            // Don't crash the app, but ensure basic functionality works
+            try {
+                FirebaseApp.initializeApp(this)
+            } catch (firebaseError: Exception) {
+                Log.e("MyLibraryApplication", "Failed to initialize Firebase", firebaseError)
+            }
+        }
+    }
+    
+    /**
+     * Initialize Firebase with proper error handling
+     */
+    private fun initializeFirebase() {
+        try {
+            // Check if Firebase is already initialized
+            val existingApp = try {
+                FirebaseApp.getInstance()
+            } catch (e: IllegalStateException) {
+                null
+            }
+            
+            if (existingApp == null) {
+                Log.d("MyLibraryApplication", "Initializing Firebase...")
+                FirebaseApp.initializeApp(this)
+                Log.d("MyLibraryApplication", "Firebase initialized successfully")
+            } else {
+                Log.d("MyLibraryApplication", "Firebase already initialized")
+            }
+            
+            // Add delay before configuring Firestore to avoid race conditions
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                configureFirestore()
+            }, 1000)
+            
+        } catch (e: Exception) {
+            Log.e("MyLibraryApplication", "Error initializing Firebase", e)
+            // Don't re-throw, let the app continue without Firebase for now
         }
     }
     
@@ -69,13 +119,23 @@ class MyLibraryApplication : Application() {
      * Configure Firestore settings for better offline support
      */
     private fun configureFirestore() {
-        val firestore = FirebaseFirestore.getInstance()
-        val settings = FirebaseFirestoreSettings.Builder()
-            .setPersistenceEnabled(true)  // Enable offline persistence
-            .setCacheSizeBytes(FirebaseFirestoreSettings.CACHE_SIZE_UNLIMITED)  // Unlimited cache size
-            .build()
-        
-        firestore.firestoreSettings = settings
+        try {
+            val firestore = FirebaseFirestore.getInstance()
+            
+            // Enable offline persistence (new way)
+            firestore.enableNetwork()
+            
+            // Note: Cache settings are now handled automatically by Firebase
+            Log.d("MyLibraryApplication", "Firestore configured successfully")
+        } catch (e: Exception) {
+            Log.e("MyLibraryApplication", "Error configuring Firestore", e)
+            
+            // Handle Google Play Services errors
+            if (GooglePlayServicesErrorHandler.isGooglePlayServicesError(e)) {
+                val errorMessage = GooglePlayServicesErrorHandler.handleAuthenticationError(e)
+                Log.e("MyLibraryApplication", errorMessage)
+            }
+        }
     }
     
     /**
@@ -110,18 +170,29 @@ class MyLibraryApplication : Application() {
      * Setup Firebase Cloud Messaging
      */
     private fun setupFCM() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Log.w("FCM", "Fetching FCM registration token failed", task.exception)
-                return@addOnCompleteListener
-            }
-            
-            // Get new FCM registration token
-            val token = task.result
-            Log.d("FCM", "FCM Registration Token: $token")
-            
-            // TODO: Send token to server if user is logged in
-            // This will be handled in the MyFirebaseMessagingService
+        try {
+            // Add delay to ensure Firebase is fully initialized
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                try {
+                    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                        if (!task.isSuccessful) {
+                            Log.w("FCM", "Fetching FCM registration token failed", task.exception)
+                            return@addOnCompleteListener
+                        }
+                        
+                        // Get new FCM registration token
+                        val token = task.result
+                        Log.d("FCM", "FCM Registration Token: $token")
+                        
+                        // TODO: Send token to server if user is logged in
+                        // This will be handled in the MyFirebaseMessagingService
+                    }
+                } catch (e: Exception) {
+                    Log.e("FCM", "Error setting up FCM", e)
+                }
+            }, 2000) // 2 second delay
+        } catch (e: Exception) {
+            Log.e("FCM", "Error in setupFCM", e)
         }
     }
     

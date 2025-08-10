@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.mylibraryapps.service.NotificationWorker
+import com.example.mylibraryapps.utils.SafeFirestoreConverter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
@@ -364,7 +365,7 @@ class NotificationTestHelper(private val context: Context) {
             
             Log.d(TAG, "=== ACTIVE TRANSACTIONS ===")
             snapshot.documents.forEach { doc ->
-                val transaction = doc.toObject(com.example.mylibraryapps.model.Transaction::class.java)
+                val transaction = SafeFirestoreConverter.documentToTransaction(doc)
                 if (transaction != null) {
                     val returnDate = parseDate(transaction.returnDate)
                     val daysRemaining = if (returnDate != null) {

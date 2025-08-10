@@ -9,6 +9,7 @@ import com.example.mylibraryapps.model.Notification
 import com.example.mylibraryapps.model.Transaction
 import com.example.mylibraryapps.model.User
 import com.example.mylibraryapps.utils.FirestoreErrorHandler
+import com.example.mylibraryapps.utils.SafeFirestoreConverter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.type.Date
@@ -94,12 +95,10 @@ class AppRepository {
                     try {
                         when (collection) {
                             "notifications" -> {
-                                val notification = doc.toObject(Notification::class.java)?.copy(id = doc.id)
-                                notification
+                                SafeFirestoreConverter.documentToNotification(doc)
                             }
                             "transactions" -> {
-                                val transaction = doc.toObject(Transaction::class.java)?.copy(id = doc.id)
-                                transaction
+                                SafeFirestoreConverter.documentToTransaction(doc)
                             }
                             else -> null
                         }
@@ -160,17 +159,7 @@ class AppRepository {
                 val booksList = result.documents.mapNotNull { doc ->
                     try {
                         Log.d(TAG, "Processing document: ${doc.id}")
-                        // Ambil data buku dan pastikan ID dan coverUrl disertakan
-                        val book = doc.toObject(Book::class.java)
-                        val coverUrl = doc.getString("coverUrl") ?: ""
-                        
-                        if (book != null) {
-                            Log.d(TAG, "Book parsed successfully: ${book.title}")
-                            book.copy(id = doc.id, coverUrl = coverUrl)
-                        } else {
-                            Log.w(TAG, "Book is null for document: ${doc.id}")
-                            null
-                        }
+                        SafeFirestoreConverter.documentToBook(doc)
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing book ${doc.id}", e)
                         null
@@ -216,18 +205,7 @@ class AppRepository {
                     try {
                         Log.d(TAG, "Processing document: ${doc.id}")
                         Log.d(TAG, "Document data: ${doc.data}")
-                        
-                        // Ambil data buku dan pastikan ID dan coverUrl disertakan
-                        val book = doc.toObject(Book::class.java)
-                        val coverUrl = doc.getString("coverUrl") ?: ""
-                        
-                        if (book != null) {
-                            Log.d(TAG, "Book parsed successfully: ${book.title}")
-                            book.copy(id = doc.id, coverUrl = coverUrl)
-                        } else {
-                            Log.w(TAG, "Book is null for document: ${doc.id}")
-                            null
-                        }
+                        SafeFirestoreConverter.documentToBook(doc)
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing book ${doc.id}", e)
                         null
@@ -367,7 +345,7 @@ class AppRepository {
                     .addOnSuccessListener { snapshot ->
                         val transactions = snapshot.documents.mapNotNull { doc ->
                             try {
-                                doc.toObject(Transaction::class.java)?.copy(id = doc.id)
+                                SafeFirestoreConverter.documentToTransaction(doc)
                             } catch (e: Exception) {
                                 Log.e(TAG, "Error parsing transaction ${doc.id}", e)
                                 null
@@ -658,7 +636,7 @@ class AppRepository {
             .addOnSuccessListener { snapshot ->
                 val transactions = snapshot.documents.mapNotNull { doc ->
                     try {
-                        doc.toObject(Transaction::class.java)?.copy(id = doc.id)
+                        SafeFirestoreConverter.documentToTransaction(doc)
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing transaction ${doc.id}", e)
                         null

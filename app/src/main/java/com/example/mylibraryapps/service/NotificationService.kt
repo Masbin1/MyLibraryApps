@@ -3,6 +3,7 @@ package com.example.mylibraryapps.service
 import android.util.Log
 import com.example.mylibraryapps.data.NotificationRepository
 import com.example.mylibraryapps.model.Transaction
+import com.example.mylibraryapps.utils.SafeFirestoreConverter
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
@@ -62,7 +63,7 @@ class NotificationService {
                 .await()
 
             snapshot.documents.mapNotNull { doc ->
-                doc.toObject(Transaction::class.java)?.copy(id = doc.id)
+                SafeFirestoreConverter.documentToTransaction(doc)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching active transactions", e)
@@ -199,7 +200,7 @@ class NotificationService {
                 .await()
 
             snapshot.documents.mapNotNull { doc ->
-                doc.toObject(Transaction::class.java)?.copy(id = doc.id)
+                SafeFirestoreConverter.documentToTransaction(doc)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching user active transactions", e)

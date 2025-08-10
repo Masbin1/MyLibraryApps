@@ -1,6 +1,7 @@
 package com.example.mylibraryapps.data
 
 import com.example.mylibraryapps.model.Notification
+import com.example.mylibraryapps.utils.SafeFirestoreConverter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
@@ -24,7 +25,7 @@ class NotificationRepository {
                 }
 
                 val notifications = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(Notification::class.java)?.copy(id = doc.id)
+                    SafeFirestoreConverter.documentToNotification(doc)
                 } ?: emptyList()
 
                 // Filter out notifications for completed transactions

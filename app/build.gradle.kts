@@ -61,6 +61,10 @@ dependencies {
     // Firebase Cloud Messaging
     implementation("com.google.firebase:firebase-messaging-ktx:23.4.1")
     
+    // Google Play Services (to fix the broker issue)
+    implementation("com.google.android.gms:play-services-base:18.5.0")
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    
     // WorkManager for scheduling notifications
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     
