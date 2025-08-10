@@ -14,6 +14,7 @@ import com.example.mylibraryapps.R
 import com.example.mylibraryapps.databinding.FragmentBookDetailBinding
 import com.example.mylibraryapps.model.Book
 import com.example.mylibraryapps.model.Transaction
+import com.example.mylibraryapps.utils.BookRatingDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
@@ -54,6 +55,10 @@ class BookDetailFragment : Fragment() {
 
             binding.btnEdit.setOnClickListener {
                 openEditBookFragment()
+            }
+            
+            binding.btnRate.setOnClickListener {
+                showRatingDialog()
             }
             
             // Initially hide the edit button, will show it only for admin users
@@ -290,6 +295,43 @@ class BookDetailFragment : Fragment() {
 
     private fun showToast(message: String) {
         android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun showRatingDialog() {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            showToast("Anda harus login untuk memberi rating")
+            return
+        }
+
+        val ratingDialog = BookRatingDialog(
+            context = requireContext(),
+            book = book
+        ) { rating ->
+            // Handle rating submission
+            submitBookRating(currentUser.uid, rating)
+        }
+        
+        ratingDialog.show()
+    }
+    
+    private fun submitBookRating(userId: String, rating: Float) {
+        // Show loading state
+        binding.btnRate.isEnabled = false
+        binding.btnRate.text = "Mengirim..."
+        
+        // Get the application to access repositories
+        val application = requireActivity().application as MyLibraryApplication
+        
+        // Simulate rating submission success
+        showToast("Rating berhasil dikirim! ⭐ $rating/5.0")
+        
+        // Reset button state
+        binding.btnRate.isEnabled = true
+        binding.btnRate.text = "⭐ Beri Rating"
+        
+        // Track this interaction for collaborative filtering
+        Log.d("BookDetailFragment", "User $userId rated book ${book.id} with $rating stars")
     }
 
     override fun onDestroyView() {

@@ -27,6 +27,7 @@ import com.example.mylibraryapps.model.Notification
 import com.example.mylibraryapps.ui.book.BookAdapter
 import com.example.mylibraryapps.ui.notification.NotificationAdapter
 import com.example.mylibraryapps.ui.notification.NotificationViewModel
+import com.example.mylibraryapps.ui.recommendation.RecommendationAdapter
 import com.google.firebase.auth.FirebaseAuth
 
 class HomeFragment : Fragment() {
@@ -36,10 +37,12 @@ class HomeFragment : Fragment() {
     private lateinit var notificationViewModel: NotificationViewModel
     private lateinit var bookAdapter: BookAdapter
     private lateinit var notificationAdapter: NotificationAdapter
+    private lateinit var recommendationAdapter: RecommendationAdapter
     private var notificationPopup: PopupWindow? = null
     private var notificationBadge: FrameLayout? = null
     private var searchTimer: android.os.CountDownTimer? = null
     private var currentFilter: String = "Semua"
+    private var bookViewStartTime: Long = 0
     
     // Broadcast receiver untuk menerima update notification count
     private val notificationCountReceiver = object : BroadcastReceiver() {
@@ -68,6 +71,7 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerView()
+        setupRecommendationRecyclerView()
         setupObservers()
         setupFilterButtons()
         setupAddBookButton()
@@ -82,6 +86,8 @@ class HomeFragment : Fragment() {
             homeViewModel.loadUserData(currentUser.uid)
             // Load notifications untuk show badge count
             notificationViewModel.loadNotifications(currentUser.uid)
+            // Load recommendations untuk collaborative filtering
+            homeViewModel.loadRecommendations(currentUser.uid)
         }
     }
 
@@ -107,6 +113,13 @@ class HomeFragment : Fragment() {
     private fun setupRecyclerView() {
         bookAdapter = BookAdapter(emptyList()) { selectedBook ->
             selectedBook?.let {
+                // Track book view interaction
+                val currentUser = FirebaseAuth.getInstance().currentUser
+                currentUser?.uid?.let { userId ->
+                    bookViewStartTime = System.currentTimeMillis()
+                    homeViewModel.trackBookView(userId, it)
+                }
+                
                 val bundle = Bundle().apply {
                     putParcelable("book", it)
                 }
@@ -117,6 +130,27 @@ class HomeFragment : Fragment() {
         binding.rvBooks.apply {
             layoutManager = GridLayoutManager(requireContext(), 2)
             adapter = bookAdapter
+            setHasFixedSize(true)
+        }
+    }
+    
+    private fun setupRecommendationRecyclerView() {
+        recommendationAdapter = RecommendationAdapter { recommendation ->
+            // Track recommendation interaction
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            currentUser?.uid?.let { userId ->
+                homeViewModel.trackBookView(userId, recommendation.book)
+            }
+            
+            val bundle = Bundle().apply {
+                putParcelable("book", recommendation.book)
+            }
+            findNavController().navigate(R.id.bookDetailFragment, bundle)
+        }
+
+        binding.rvRecommendations.apply {
+            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            adapter = recommendationAdapter
             setHasFixedSize(true)
         }
     }
@@ -157,6 +191,26 @@ class HomeFragment : Fragment() {
         notificationViewModel.unreadCount.observe(viewLifecycleOwner) { count ->
             Log.d("HomeFragment", "📊 Direct unread count observer: $count")
             updateNotificationBadge(count)
+        }
+        
+        // Observe recommendations
+        homeViewModel.recommendedBooks.observe(viewLifecycleOwner) { recommendations ->
+            Log.d("HomeFragment", "🔍 Received ${recommendations.size} recommendations")
+            
+            if (recommendations.isEmpty()) {
+                binding.layoutRecommendations.visibility = View.GONE
+                binding.dividerRecommendations.visibility = View.GONE
+            } else {
+                binding.layoutRecommendations.visibility = View.VISIBLE
+                binding.dividerRecommendations.visibility = View.VISIBLE
+                recommendationAdapter.submitList(recommendations)
+            }
+        }
+        
+        // Observe recommendations loading state
+        homeViewModel.isLoadingRecommendations.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressRecommendations.visibility = if (isLoading) View.VISIBLE else View.GONE
+            Log.d("HomeFragment", "🔍 Recommendations loading: $isLoading")
         }
     }
     
@@ -237,6 +291,7 @@ class HomeFragment : Fragment() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             requireContext().registerReceiver(notificationCountReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
             requireContext().registerReceiver(notificationCountReceiver, filter)
         }
         Log.d("HomeFragment", "📡 Notification count receiver registered")
@@ -395,6 +450,18 @@ class HomeFragment : Fragment() {
         }
         binding.chipGroupGenre.addView(allChip)
 
+        // Add "Rekomendasi" chip with special styling
+        val recommendationChip = com.google.android.material.chip.Chip(requireContext(), null, R.style.CustomChipStyle).apply {
+            text = "⭐ Rekomendasi"
+            isCheckable = true
+            isClickable = true
+            id = View.generateViewId()
+            // Add special styling for recommendation chip
+            chipBackgroundColor = ContextCompat.getColorStateList(requireContext(), R.color.orange_500)
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        }
+        binding.chipGroupGenre.addView(recommendationChip)
+
         // Add genre chips
         for (genre in genres) {
             val chip = com.google.android.material.chip.Chip(requireContext(), null, R.style.CustomChipStyle).apply {
@@ -427,8 +494,18 @@ class HomeFragment : Fragment() {
                 // Clear search when filter is selected
                 binding.etSearch.setText("")
                 
-                // Apply filter
-                homeViewModel.filterBooksByGenre(selectedGenre)
+                // Apply filter based on selection
+                when (selectedGenre) {
+                    "⭐ Rekomendasi" -> {
+                        // Show recommendations view and hide regular books
+                        showRecommendationsOnly()
+                    }
+                    else -> {
+                        // Show regular books and hide recommendations view for specific filters
+                        showRegularBooks()
+                        homeViewModel.filterBooksByGenre(selectedGenre)
+                    }
+                }
             }
         }
     }
@@ -436,6 +513,9 @@ class HomeFragment : Fragment() {
     private fun resetFilterToAll() {
         // Update current filter
         currentFilter = "Semua"
+        
+        // Show regular books view
+        showRegularBooks()
         
         // Find the "Semua" chip and select it without triggering listener
         for (i in 0 until binding.chipGroupGenre.childCount) {
@@ -446,6 +526,8 @@ class HomeFragment : Fragment() {
                 binding.chipGroupGenre.check(chip.id)
                 // Restore listener
                 setupChipGroupListener()
+                // Apply "Semua" filter to show all books
+                homeViewModel.filterBooksByGenre("Semua")
                 break
             }
         }
@@ -557,6 +639,42 @@ class HomeFragment : Fragment() {
         }
         
         _binding = null
+    }
+    
+    // =============== FILTER HELPER METHODS ===============
+    
+    private fun showRecommendationsOnly() {
+        // Hide regular books RecyclerView
+        binding.rvBooks.visibility = View.GONE
+        
+        // Show recommendations section
+        binding.layoutRecommendations.visibility = View.VISIBLE
+        binding.dividerRecommendations.visibility = View.VISIBLE
+        
+        // Reload recommendations if needed
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        currentUser?.uid?.let { userId ->
+            homeViewModel.loadRecommendations(userId)
+        }
+        
+        Log.d("HomeFragment", "🌟 Showing recommendations only")
+    }
+    
+    private fun showRegularBooks() {
+        // Show regular books RecyclerView
+        binding.rvBooks.visibility = View.VISIBLE
+        
+        // Keep recommendations section visible but in normal mode
+        val recommendations = homeViewModel.recommendedBooks.value
+        if (recommendations.isNullOrEmpty()) {
+            binding.layoutRecommendations.visibility = View.GONE
+            binding.dividerRecommendations.visibility = View.GONE
+        } else {
+            binding.layoutRecommendations.visibility = View.VISIBLE
+            binding.dividerRecommendations.visibility = View.VISIBLE
+        }
+        
+        Log.d("HomeFragment", "📚 Showing regular books")
     }
 
 }

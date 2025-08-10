@@ -13,4 +13,17 @@
     <color name="text_secondary">#000000</color>
     <color name="red_error">#FF1100</color>
     <color name="red_primary">#FF1100</color>
+    
+    <!-- Additional colors for collaborative filtering -->
+    <color name="orange_500">#FF9800</color>
+    <color name="red_500">#F44336</color>
+    <color name="indigo_500">#3F51B5</color>
+    <color name="gray_200">#EEEEEE</color>
+    <color name="gray_300">#E0E0E0</color>
+    <color name="gray_400">#BDBDBD</color>
+    <color name="gray_500">#9E9E9E</color>
+    <color name="gray_600">#757575</color>
+    <color name="gray_700">#616161</color>
+    <color name="purple_100">#E1BEE7</color>
+    <color name="purple_300">#BA68C8</color>
 </resources>
