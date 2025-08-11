@@ -216,7 +216,7 @@ class HomeFragment : Fragment() {
         
         // Observe recommendations loading state
         homeViewModel.isLoadingRecommendations.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressRecommendations.visibility = if (isLoading) View.VISIBLE else View.GONE
+            binding.progressRecommendations.visibility = if (isLoading) View.GONE else View.GONE
             Log.d("HomeFragment", "🔍 Recommendations loading: $isLoading")
         }
     }

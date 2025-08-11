@@ -27,14 +27,12 @@ class NotificationViewModel : ViewModel() {
         _isLoading.value = true
         
         viewModelScope.launch {
-            // First, check for new notifications based on due dates
-            notificationService.checkNotificationsForUser(userId)
-            
-            // Then load all notifications for the user
+            // HANYA load notifications yang sudah ada, JANGAN buat yang baru
+            // Pembuatan notifikasi harus dilakukan oleh background service atau push notification
             notificationRepository.getNotifications(userId)
                 .catch { exception ->
                     _isLoading.value = false
-                    // Handle error
+                    android.util.Log.e("NotificationViewModel", "Error loading notifications", exception)
                 }
                 .collect { notificationList ->
                     _notifications.value = notificationList

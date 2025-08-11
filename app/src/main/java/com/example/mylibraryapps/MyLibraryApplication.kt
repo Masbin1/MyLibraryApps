@@ -58,13 +58,13 @@ class MyLibraryApplication : Application() {
             // Initialize FCM (can fail gracefully)
             setupFCM()
             
-            // Initialize notification scheduler (can fail gracefully)
-            setupNotificationScheduler()
+            // DISABLE automatic notification creation - hanya buat saat ada push notification
+            // setupNotificationScheduler() // DISABLED - tidak perlu auto-create notifications
             
-            // Setup background services with delay to reduce startup load
+            // Setup background services with delay to reduce startup load (tanpa auto-notification)
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                setupBackgroundServices()
-                runInitialNotificationCheck()
+                // setupBackgroundServices() // DISABLED - tidak perlu background service untuk auto-notification
+                // runInitialNotificationCheck() // DISABLED - tidak perlu auto-check saat startup
                 
                 // Run crash fix verification tests
                 CrashFixVerifier.runAllTests(this)
