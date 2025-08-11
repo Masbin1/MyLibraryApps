@@ -294,7 +294,8 @@
                     android:textSize="14sp"
                     style="@style/Widget.MaterialComponents.Button"
                     app:backgroundTint="@color/orange_500"
-                    app:cornerRadius="12dp" />
+                    app:cornerRadius="12dp"
+                    android:visibility="gone"/>
 
             </LinearLayout>
 
