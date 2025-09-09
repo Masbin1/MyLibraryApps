@@ -15,38 +15,47 @@ class CollaborativeFilteringService(
 ) {
     private val TAG = "CollaborativeFiltering"
     
-    // Hitung cosine similarity antara dua user
-    private fun calculateCosineSimilarity(
-        user1Interactions: Map<String, Float>,
-        user2Interactions: Map<String, Float>
+    // Hitung similarity berdasarkan pola peminjaman buku
+    private fun calculateBorrowingSimilarity(
+        user1Borrows: Map<String, Float>,
+        user2Borrows: Map<String, Float>
     ): Float {
-        val commonBooks = user1Interactions.keys.intersect(user2Interactions.keys)
+        val commonBooks = user1Borrows.keys.intersect(user2Borrows.keys)
         
         if (commonBooks.isEmpty()) return 0f
         
-        val dotProduct = commonBooks.sumOf { bookId ->
-            ((user1Interactions[bookId] ?: 0f) * (user2Interactions[bookId] ?: 0f)).toDouble()
+        // Jaccard similarity dengan weight berdasarkan frekuensi peminjaman
+        val intersection = commonBooks.sumOf { bookId ->
+            min(user1Borrows[bookId] ?: 0f, user2Borrows[bookId] ?: 0f).toDouble()
         }.toFloat()
         
-        val norm1 = sqrt(user1Interactions.values.sumOf { (it * it).toDouble() }).toFloat()
-        val norm2 = sqrt(user2Interactions.values.sumOf { (it * it).toDouble() }).toFloat()
+        val union = (user1Borrows.keys + user2Borrows.keys).sumOf { bookId ->
+            max(user1Borrows[bookId] ?: 0f, user2Borrows[bookId] ?: 0f).toDouble()
+        }.toFloat()
         
-        return if (norm1 == 0f || norm2 == 0f) 0f else dotProduct / (norm1 * norm2)
+        val jaccardSimilarity = if (union == 0f) 0f else intersection / union
+        
+        // Boost similarity jika ada banyak buku yang sama dipinjam
+        val commonBooksBoost = min(commonBooks.size / 5f, 1f) // max boost untuk 5+ buku sama
+        
+        return min(jaccardSimilarity * (1f + commonBooksBoost), 1f)
     }
     
-    // Konversi interaksi ke score (rating-based)
-    private fun interactionToScore(interaction: UserBookInteraction): Float {
+    // Konversi interaksi ke score berdasarkan peminjaman (borrow-based)
+    private fun interactionToBorrowScore(interaction: UserBookInteraction): Float {
         return when (interaction.interactionType) {
-            InteractionType.RATE -> interaction.rating
-            InteractionType.BORROW -> 4.0f
-            InteractionType.FAVORITE -> 5.0f
-            InteractionType.VIEW -> {
-                // Score berdasarkan durasi view (max 3.0)
-                val durationScore = min(interaction.duration / 60000f, 3.0f) // max 1 menit = 3.0 score
-                durationScore
+            InteractionType.BORROW -> 1.0f  // Setiap peminjaman = 1 point
+            InteractionType.RETURN -> 0.5f  // Return menunjukkan completion = 0.5 point
+            InteractionType.FAVORITE -> 0.3f // Favorite menunjukkan interest = 0.3 point
+            InteractionType.RATE -> {
+                // Rating tinggi menunjukkan kepuasan setelah baca = weighted
+                if (interaction.rating >= 4.0f) 0.4f else 0.1f
             }
-            InteractionType.SEARCH -> 2.0f
-            InteractionType.RETURN -> 3.5f
+            InteractionType.VIEW -> {
+                // View lama menunjukkan interest = scaled
+                min(interaction.duration / 300000f, 0.2f) // max 5 menit = 0.2 point
+            }
+            InteractionType.SEARCH -> 0.05f // Search menunjukkan minimal interest
         }
     }
     
@@ -67,46 +76,52 @@ class CollaborativeFilteringService(
                 return@withContext generatePopularRecommendations(allBooks, allInteractions, limit)
             }
             
-            // Buat user-book matrix dengan scores
+            // Buat user-book matrix berdasarkan frekuensi peminjaman
             val userBookMatrix = mutableMapOf<String, MutableMap<String, Float>>()
             
             allInteractions.forEach { interaction ->
                 val userMap = userBookMatrix.getOrPut(interaction.userId) { mutableMapOf() }
                 val currentScore = userMap.getOrDefault(interaction.bookId, 0f)
-                val interactionScore = interactionToScore(interaction)
+                val borrowScore = interactionToBorrowScore(interaction)
                 
-                // Agregasi score (rata-rata weighted)
-                userMap[interaction.bookId] = (currentScore + interactionScore) / 2f
+                // Akumulasi score (total peminjaman + interaksi)
+                userMap[interaction.bookId] = currentScore + borrowScore
             }
             
             val currentUserBooks = userBookMatrix[userId] ?: emptyMap()
             val recommendations = mutableMapOf<String, Float>()
             
-            // Find similar users
+            // Find similar users berdasarkan pola peminjaman
             val similarUsers = userBookMatrix.entries
                 .filter { it.key != userId }
                 .map { (otherUserId, otherUserBooks) ->
-                    val similarity = calculateCosineSimilarity(currentUserBooks, otherUserBooks)
+                    val similarity = calculateBorrowingSimilarity(currentUserBooks, otherUserBooks)
                     Pair(otherUserId, similarity)
                 }
-                .filter { it.second > 0.1f } // minimum similarity threshold
+                .filter { it.second > 0.05f } // minimum similarity threshold (lebih rendah untuk borrowing)
                 .sortedByDescending { it.second }
-                .take(20) // top 20 similar users
+                .take(15) // top 15 similar users (lebih fokus)
             
-            Log.d(TAG, "Found ${similarUsers.size} similar users")
+            Log.d(TAG, "📚 Found ${similarUsers.size} users with similar borrowing patterns")
+            Log.d(TAG, "📖 Current user has borrowed/interacted with ${currentUserBooks.size} books")
             
             // Generate recommendations from similar users
             similarUsers.forEach { (similarUserId, similarity) ->
                 val similarUserBooks = userBookMatrix[similarUserId] ?: emptyMap()
                 
-                similarUserBooks.forEach { (bookId, score) ->
-                    // Hanya recommend buku yang belum pernah diinteraksi user
+                similarUserBooks.forEach { (bookId, borrowScore) ->
+                    // Hanya recommend buku yang belum pernah dipinjam user
                     if (!currentUserBooks.containsKey(bookId)) {
-                        val weightedScore = score * similarity
+                        // Weight berdasarkan similarity dan frekuensi peminjaman
+                        val borrowFrequencyWeight = min(borrowScore / 2f, 1f) // normalize frequency
+                        val weightedScore = borrowFrequencyWeight * similarity
+                        
                         recommendations[bookId] = recommendations.getOrDefault(bookId, 0f) + weightedScore
                     }
                 }
             }
+            
+            Log.d(TAG, "🎯 Generated ${recommendations.size} potential recommendations")
             
             // Convert to BookRecommendation objects
             val bookRecommendations = recommendations.entries
@@ -119,7 +134,7 @@ class CollaborativeFilteringService(
                             book = it,
                             score = min(score, 1.0f), // normalize score
                             recommendationType = RecommendationType.COLLABORATIVE,
-                            reason = "Direkomendasikan berdasarkan preferensi pengguna serupa"
+                            reason = "Sering dipinjam oleh pengguna dengan pola peminjaman serupa"
                         )
                     }
                 }
@@ -195,43 +210,44 @@ class CollaborativeFilteringService(
         }
     }
     
-    // Generate rekomendasi popular (fallback)
+    // Generate rekomendasi berdasarkan buku yang paling sering dipinjam (fallback)
     private fun generatePopularRecommendations(
         allBooks: List<Book>,
         allInteractions: List<UserBookInteraction>,
         limit: Int = 10
     ): List<BookRecommendation> {
         try {
-            Log.d(TAG, "📊 Generating popular recommendations")
+            Log.d(TAG, "📊 Generating popular recommendations based on borrowing frequency")
             
-            val bookPopularity = mutableMapOf<String, Int>()
+            val bookBorrowCount = mutableMapOf<String, Float>()
             
             allInteractions.forEach { interaction ->
-                val currentCount = bookPopularity.getOrDefault(interaction.bookId, 0)
-                val weight = when (interaction.interactionType) {
-                    InteractionType.BORROW -> 3
-                    InteractionType.RATE -> 2
-                    InteractionType.VIEW -> 1
-                    InteractionType.FAVORITE -> 4
-                    else -> 1
-                }
-                bookPopularity[interaction.bookId] = currentCount + weight
+                val currentScore = bookBorrowCount.getOrDefault(interaction.bookId, 0f)
+                val borrowScore = interactionToBorrowScore(interaction)
+                bookBorrowCount[interaction.bookId] = currentScore + borrowScore
             }
             
+            val maxBorrowScore = bookBorrowCount.values.maxOrNull() ?: 1f
+            
             val recommendations = allBooks
-                .map { book ->
-                    val popularity = bookPopularity.getOrDefault(book.id, 0)
-                    BookRecommendation(
-                        book = book,
-                        score = popularity.toFloat() / (bookPopularity.values.maxOrNull() ?: 1).toFloat(),
-                        recommendationType = RecommendationType.POPULAR,
-                        reason = "Buku populer di perpustakaan"
-                    )
+                .mapNotNull { book ->
+                    val borrowScore = bookBorrowCount.getOrDefault(book.id, 0f)
+                    if (borrowScore > 0f) {
+                        val borrowCount = allInteractions.count { 
+                            it.bookId == book.id && it.interactionType == InteractionType.BORROW 
+                        }
+                        BookRecommendation(
+                            book = book,
+                            score = borrowScore / maxBorrowScore,
+                            recommendationType = RecommendationType.POPULAR,
+                            reason = "Dipinjam ${borrowCount} kali oleh pengguna lain"
+                        )
+                    } else null
                 }
                 .sortedByDescending { it.score }
                 .take(limit)
             
-            Log.d(TAG, "✅ Generated ${recommendations.size} popular recommendations")
+            Log.d(TAG, "✅ Generated ${recommendations.size} popular recommendations based on borrowing")
             return recommendations
             
         } catch (e: Exception) {
