@@ -38,5 +38,17 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
+        <!-- Tombol Pinjam -->
+        <Button
+            android:id="@+id/btnPinjam"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Pinjam"
+            android:textAllCaps="false"
+            android:padding="8dp"
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="@android:color/white" />
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -35,7 +35,10 @@ class BookAdapter(
                 binding.ivCover.setImageResource(R.drawable.ic_book_dummy)
             }
 
+            // Navigate to detail when card clicked
             binding.root.setOnClickListener { onItemClick(book) }
+            // Navigate to detail when 'Pinjam' button clicked
+            binding.root.findViewById<View>(R.id.btnPinjam)?.setOnClickListener { onItemClick(book) }
         }
     }
 
