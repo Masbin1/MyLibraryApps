@@ -14,6 +14,7 @@ import com.example.mylibraryapps.MainActivity
 import com.example.mylibraryapps.R
 import com.example.mylibraryapps.ui.register.RegisterActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
@@ -61,6 +62,36 @@ class LoginActivity : AppCompatActivity() {
         // Klik "Lupa password?" -> tampilkan dialog input email
         findViewById<TextView>(R.id.txtLupaPassword).setOnClickListener {
             tampilkanDialogLupaPassword()
+        }
+
+        // Klik kirim ulang verifikasi email
+        findViewById<TextView>(R.id.txtResendVerification).setOnClickListener {
+            val email = edtEmail.text.toString().trim()
+            val password = edtPassword.text.toString().trim()
+
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Masukkan email & password lalu tap kirim ulang", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Sign-in sementara untuk mendapatkan FirebaseUser, lalu kirim verifikasi
+            auth.signInWithEmailAndPassword(email, password)
+                .addOnSuccessListener { result ->
+                    val user = result.user
+                    if (user != null) {
+                        if (user.isEmailVerified) {
+                            Toast.makeText(this, "Email sudah terverifikasi", Toast.LENGTH_SHORT).show()
+                        } else {
+                            kirimEmailVerifikasi(user)
+                        }
+                        auth.signOut() // sign-out supaya tidak auto-login jika belum verified
+                    } else {
+                        Toast.makeText(this, "Gagal mendapatkan akun", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Gagal autentikasi: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
         }
 
         // Klik teks "Belum punya akun? Daftar"
@@ -131,17 +162,12 @@ class LoginActivity : AppCompatActivity() {
                     val user = auth.currentUser
                     if (user != null) {
 //                        hilangin falsenya jika kamu mau buat login yang email verify
-                        if (user.isEmailVerified == false) {
+                        if (user.isEmailVerified == true) {
                             // Email verified, get user data from Firestore
                             getUserDataFromFirestore(user.uid)
                         } else {
-                            Toast.makeText(
-                                this,
-                                "Silakan verifikasi email terlebih dahulu!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            // Optionally resend verification email
-                            // user.sendEmailVerification()
+                            // Kirim email verifikasi jika belum terverifikasi
+                            kirimEmailVerifikasi(user)
                         }
                     }
                 } else {
@@ -205,6 +231,17 @@ class LoginActivity : AppCompatActivity() {
                     Log.e("LoginActivity", "Failed to update FCM token", e)
                 }
         }
+    }
+
+    private fun kirimEmailVerifikasi(user: FirebaseUser) {
+        user.sendEmailVerification()
+            .addOnSuccessListener {
+                Toast.makeText(this, "Email verifikasi telah dikirim ke ${user.email}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Silakan cek email lalu login kembali setelah verifikasi", Toast.LENGTH_LONG).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Gagal mengirim email verifikasi: ${e.message}", Toast.LENGTH_LONG).show()
+            }
     }
     
     /**
