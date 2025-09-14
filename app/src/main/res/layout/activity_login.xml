@@ -47,11 +47,21 @@
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="8dp"
             android:backgroundTint="#2D1D71"
             android:text="LOGIN"
             android:textColor="@android:color/white" />
 
+        <!-- Lupa Password -->
+        <TextView
+            android:id="@+id/txtLupaPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="Lupa password?"
+            android:textColor="#1976D2"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <!-- LinearLayout untuk membuat TextView sejajar -->
         <LinearLayout

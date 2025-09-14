@@ -58,11 +58,60 @@ class LoginActivity : AppCompatActivity() {
             loginAkun()
         }
 
+        // Klik "Lupa password?" -> tampilkan dialog input email
+        findViewById<TextView>(R.id.txtLupaPassword).setOnClickListener {
+            tampilkanDialogLupaPassword()
+        }
+
         // Klik teks "Belum punya akun? Daftar"
         txtDaftar.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    private fun kirimResetPassword(email: String) {
+        // Firebase akan mengirim email reset password jika email terdaftar di Auth
+        auth.sendPasswordResetEmail(email)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Email reset password telah dikirim ke $email", Toast.LENGTH_LONG).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Gagal mengirim email reset: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+    }
+
+    private fun tampilkanDialogLupaPassword() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_forgot_password, null)
+        val edtEmailForgot = dialogView.findViewById<EditText>(R.id.edtEmailForgot)
+
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+            .create()
+
+        dialogView.findViewById<Button>(R.id.btnBatal).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<Button>(R.id.btnKirim).setOnClickListener {
+            val email = edtEmailForgot.text.toString().trim()
+            if (email.isEmpty()) {
+                Toast.makeText(this, "Email tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            // Validasi sederhana pola email
+            val emailPattern = android.util.Patterns.EMAIL_ADDRESS
+            if (!emailPattern.matcher(email).matches()) {
+                Toast.makeText(this, "Format email tidak valid", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            kirimResetPassword(email)
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun loginAkun() {
