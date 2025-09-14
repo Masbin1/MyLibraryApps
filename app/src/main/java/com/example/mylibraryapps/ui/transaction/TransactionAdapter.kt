@@ -64,6 +64,15 @@ class TransactionAdapter(
                 binding.tvStatus.text = statusText
                 binding.tvStatus.setBackgroundResource(statusBg)
 
+                // Show fine if available
+                val fine = transaction.fine
+                if (fine > 0) {
+                    binding.layoutFine.visibility = android.view.View.VISIBLE
+                    binding.tvFine.text = formatRupiah(fine)
+                } else {
+                    binding.layoutFine.visibility = android.view.View.GONE
+                }
+
                 if (transaction.coverUrl.isNotBlank()) {
                     Glide.with(binding.root.context)
                         .load(transaction.coverUrl)
@@ -93,6 +102,12 @@ class TransactionAdapter(
             } catch (e: Exception) {
                 date
             }
+        }
+
+        private fun formatRupiah(amount: Int): String {
+            // Simple Indonesian Rupiah formatting
+            val formatter = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("in", "ID"))
+            return formatter.format(amount).replace("Rp", "Rp ").replace(",00", "")
         }
     }
 

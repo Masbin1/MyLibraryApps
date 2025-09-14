@@ -85,6 +85,34 @@
                 tools:text="Pending" />
         </LinearLayout>
 
+        <!-- Fine info row (optional, visible when fine > 0) -->
+        <LinearLayout
+            android:id="@+id/layout_fine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tv_fine_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Denda:" 
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray" />
+
+            <TextView
+                android:id="@+id/tv_fine"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="Rp 0"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/holo_red_dark" />
+        </LinearLayout>
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"

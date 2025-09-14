@@ -96,6 +96,14 @@ class TransactionDetailFragment : Fragment() {
             transaction.genre.takeIf { !it.isNullOrEmpty() } ?: "Genre Tidak Tersedia"
         binding.tvPublisher.text =
             transaction.publisher.takeIf { !it.isNullOrEmpty() } ?: "Penerbit Tidak Tersedia"
+
+        // Show fine if already calculated
+        if (transaction.fine > 0) {
+            binding.layoutFine.visibility = View.VISIBLE
+            binding.tvFine.text = formatRupiah(transaction.fine)
+        } else {
+            binding.layoutFine.visibility = View.GONE
+        }
     }
 
     // Add this in your setupAdminDependentViews function
@@ -204,9 +212,27 @@ class TransactionDetailFragment : Fragment() {
 
         uiScope.launch {
             try {
-                // Update transaction status first
+                // Calculate late days and fine (Rp 1.000 per day)
+                val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val today = java.util.Date()
+                val dueDate = try { inputFormat.parse(transaction.returnDate) } catch (e: Exception) { null }
+                val lateDays = if (dueDate != null) {
+                    val diffMs = today.time - dueDate.time
+                    val days = kotlin.math.floor(diffMs / (1000.0 * 60 * 60 * 24)).toInt()
+                    if (days > 0) days else 0
+                } else 0
+                val fine = lateDays * 1000
+
+                // Update transaction with status, lateDays, and fine
+                val updates = hashMapOf<String, Any>(
+                    "status" to "sudah dikembalikan"
+                ).apply {
+                    if (lateDays >= 0) put("lateDays", lateDays)
+                    if (fine >= 0) put("fine", fine)
+                }
+
                 db.collection("transactions").document(transaction.id)
-                    .update("status", "sudah dikembalikan")
+                    .update(updates)
                     .await()
 
                 // Then update book quantity
@@ -218,7 +244,7 @@ class TransactionDetailFragment : Fragment() {
                         .await()
                 }
 
-                showToast("Pengembalian berhasil dikonfirmasi")
+                showToast(if (fine > 0) "Pengembalian dikonfirmasi. Denda: ${formatRupiah(fine)}" else "Pengembalian berhasil dikonfirmasi")
                 requireActivity().onBackPressed()
             } catch (e: Exception) {
                 showToast("Gagal mengkonfirmasi: ${e.message}")
@@ -235,6 +261,11 @@ class TransactionDetailFragment : Fragment() {
         } catch (e: Exception) {
             dateString
         }
+    }
+
+    private fun formatRupiah(amount: Int): String {
+        val formatter = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("in", "ID"))
+        return formatter.format(amount).replace("Rp", "Rp ").replace(",00", "")
     }
 
     private fun getStatusText(status: String): String {

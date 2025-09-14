@@ -18,5 +18,7 @@ data class Transaction(
     val genre: String = "",
     val publisher: String = "",
     val remainingDays: Int = 0,
-    val stability: Int = 0
+    val stability: Int = 0,
+    val lateDays: Int = 0,        // Hari keterlambatan (disimpan saat pengembalian dikonfirmasi)
+    val fine: Int = 0             // Denda total (rupiah), 1000/hari keterlambatan
 ) : Parcelable
