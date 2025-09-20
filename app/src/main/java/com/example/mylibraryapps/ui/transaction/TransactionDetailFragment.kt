@@ -244,7 +244,7 @@ class TransactionDetailFragment : Fragment() {
                         .await()
                 }
 
-                showToast(if (fine > 0) "Pengembalian dikonfirmasi. Denda: ${formatRupiah(fine)}" else "Pengembalian berhasil dikonfirmasi")
+                showToast(if (fine > 0) "Pengembalian dikonfirmasi. Denda: ${formatRupiah(fine)}" else "Pengembalian berhasil dikonfirmasi. Tidak ada denda")
                 requireActivity().onBackPressed()
             } catch (e: Exception) {
                 showToast("Gagal mengkonfirmasi: ${e.message}")
