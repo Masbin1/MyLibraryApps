@@ -299,8 +299,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="12dp"
-                    android:visibility="gone">
+                    android:layout_marginBottom="12dp">
 
                     <ImageView
                         android:layout_width="24dp"
