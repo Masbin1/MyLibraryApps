@@ -169,6 +169,17 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/item_recommendation" />
 
+            <!-- Empty state for recommendations -->
+            <TextView
+                android:id="@+id/tvEmptyRecommendations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Belum ada rekomendasi"
+                android:textColor="@android:color/darker_gray"
+                android:padding="12dp"
+                android:gravity="center"
+                android:visibility="gone" />
+
             <!-- Divider -->
             <View
                 android:id="@+id/dividerRecommendations"

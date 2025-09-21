@@ -13,6 +13,7 @@ import com.example.mylibraryapps.data.AppRepository
 import com.example.mylibraryapps.data.InteractionRepository
 import com.example.mylibraryapps.model.Book
 import com.example.mylibraryapps.model.BookRecommendation
+import com.example.mylibraryapps.model.RecommendationType
 import com.example.mylibraryapps.model.User
 import com.example.mylibraryapps.model.UserBookInteraction
 import com.example.mylibraryapps.model.InteractionType
@@ -100,9 +101,25 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     allBooks = allBooks,
                     limit = 15
                 )
+
+                // Fallback: if no recommendations from algorithm, pick random books
+                val finalRecommendations = if (recommendations.isNullOrEmpty()) {
+                    Log.w("HomeViewModel", "⚠️ No algorithmic recommendations. Using random fallback.")
+                    allBooks
+                        .shuffled()
+                        .take(10)
+                        .map { book ->
+                            BookRecommendation(
+                                book = book,
+                                score = 0.3f,
+                                recommendationType = RecommendationType.POPULAR,
+                                reason = "Rekomendasi awal"
+                            )
+                        }
+                } else recommendations
                 
-                _recommendedBooks.value = recommendations
-                Log.d("HomeViewModel", "✅ Loaded ${recommendations.size} recommendations")
+                _recommendedBooks.value = finalRecommendations
+                Log.d("HomeViewModel", "✅ Loaded ${finalRecommendations.size} recommendations (after fallback if needed)")
                 
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "❌ Error loading recommendations", e)

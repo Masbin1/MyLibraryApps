@@ -169,6 +169,12 @@ class HomeFragment : Fragment() {
                     Log.d("HomeFragment", "Book $index: ${book.title}")
                 }
                 bookAdapter.updateBooks(it)
+
+                // Ensure recommendations are loaded after books arrive
+                val currentUser = FirebaseAuth.getInstance().currentUser
+                currentUser?.uid?.let { uid ->
+                    homeViewModel.loadRecommendations(uid)
+                }
             }
         }
         
@@ -203,10 +209,15 @@ class HomeFragment : Fragment() {
             Log.d("HomeFragment", "🔍 Received ${recommendations.size} recommendations")
             
             if (recommendations.isEmpty()) {
-                binding.layoutRecommendations.visibility = View.GONE
+                // Keep section visible but show empty state when needed
+                binding.layoutRecommendations.visibility = View.VISIBLE
+                binding.rvRecommendations.visibility = View.GONE
+                binding.tvEmptyRecommendations.visibility = View.VISIBLE
                 binding.dividerRecommendations.visibility = View.GONE
             } else {
                 binding.layoutRecommendations.visibility = View.VISIBLE
+                binding.rvRecommendations.visibility = View.VISIBLE
+                binding.tvEmptyRecommendations.visibility = View.GONE
                 binding.dividerRecommendations.visibility = View.VISIBLE
                 recommendationAdapter.submitList(recommendations)
                 
@@ -216,7 +227,7 @@ class HomeFragment : Fragment() {
         
         // Observe recommendations loading state
         homeViewModel.isLoadingRecommendations.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressRecommendations.visibility = if (isLoading) View.GONE else View.GONE
+            binding.progressRecommendations.visibility = if (isLoading) View.VISIBLE else View.GONE
             Log.d("HomeFragment", "🔍 Recommendations loading: $isLoading")
         }
     }
@@ -703,9 +714,18 @@ class HomeFragment : Fragment() {
         // Hide regular books RecyclerView
         binding.rvBooks.visibility = View.GONE
         
-        // Show recommendations section
+        // Show recommendations section (even if empty: show empty state)
         binding.layoutRecommendations.visibility = View.VISIBLE
-        binding.dividerRecommendations.visibility = View.VISIBLE
+        val recommendations = homeViewModel.recommendedBooks.value
+        if (recommendations.isNullOrEmpty()) {
+            binding.rvRecommendations.visibility = View.GONE
+            binding.tvEmptyRecommendations.visibility = View.VISIBLE
+            binding.dividerRecommendations.visibility = View.GONE
+        } else {
+            binding.rvRecommendations.visibility = View.VISIBLE
+            binding.tvEmptyRecommendations.visibility = View.GONE
+            binding.dividerRecommendations.visibility = View.VISIBLE
+        }
         
         // Reload recommendations if needed
         val currentUser = FirebaseAuth.getInstance().currentUser
@@ -720,13 +740,16 @@ class HomeFragment : Fragment() {
         // Show regular books RecyclerView
         binding.rvBooks.visibility = View.VISIBLE
         
-        // Keep recommendations section visible but in normal mode
+        // Keep recommendations section visible, but toggle empty state
         val recommendations = homeViewModel.recommendedBooks.value
+        binding.layoutRecommendations.visibility = View.VISIBLE
         if (recommendations.isNullOrEmpty()) {
-            binding.layoutRecommendations.visibility = View.GONE
+            binding.rvRecommendations.visibility = View.GONE
+            binding.tvEmptyRecommendations.visibility = View.VISIBLE
             binding.dividerRecommendations.visibility = View.GONE
         } else {
-            binding.layoutRecommendations.visibility = View.VISIBLE
+            binding.rvRecommendations.visibility = View.VISIBLE
+            binding.tvEmptyRecommendations.visibility = View.GONE
             binding.dividerRecommendations.visibility = View.VISIBLE
         }
         
