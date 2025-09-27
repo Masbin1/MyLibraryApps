@@ -102,7 +102,9 @@ object SafeFirestoreConverter {
                 genre = document.getString("genre") ?: "",
                 publisher = document.getString("publisher") ?: "",
                 remainingDays = FirestoreConverters.convertToLong(document.get("remainingDays")).toInt(),
-                stability = FirestoreConverters.convertToLong(document.get("stability")).toInt()
+                stability = FirestoreConverters.convertToLong(document.get("stability")).toInt(),
+                lateDays = FirestoreConverters.convertToLong(document.get("lateDays")).toInt(),
+                fine = FirestoreConverters.convertToLong(document.get("fine")).toInt()
             )
             Log.d(TAG, "Successfully converted document to Transaction: ${transaction.id}")
             transaction
@@ -148,7 +150,9 @@ object SafeFirestoreConverter {
             "genre" to transaction.genre,
             "publisher" to transaction.publisher,
             "remainingDays" to transaction.remainingDays,
-            "stability" to transaction.stability
+            "stability" to transaction.stability,
+            "lateDays" to transaction.lateDays,
+            "fine" to transaction.fine
         )
     }
 }

@@ -102,7 +102,7 @@ class TransactionDetailFragment : Fragment() {
             binding.layoutFine.visibility = View.VISIBLE
             binding.tvFine.text = formatRupiah(transaction.fine)
         } else {
-            binding.layoutFine.visibility = View.VISIBLE
+            binding.layoutFine.visibility = View.GONE
         }
     }
 
