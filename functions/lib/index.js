@@ -1,17 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.manualBookReminderCheck = exports.dailyBookReminderCheck = void 0;
+exports.debugTransactions = exports.manualBookReminderCheck = exports.dailyBookReminderCheck = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 // Initialize Firebase Admin
 admin.initializeApp();
 // Import services
 const notificationService_1 = require("./services/notificationService");
-// Scheduled function that runs daily at 9 AM Jakarta time (UTC+7)
+// Scheduled function that runs daily at 7 AM Jakarta time (UTC+7)
 exports.dailyBookReminderCheck = functions
     .region('asia-southeast2') // Jakarta region
     .pubsub
-    .schedule('0 9 * * *') // Every day at 9 AM
+    .schedule('0 7 * * *') // Every day at 7 AM
     .timeZone('Asia/Jakarta')
     .onRun(async (context) => {
     console.log('Starting daily book reminder check...');
@@ -30,7 +30,7 @@ exports.manualBookReminderCheck = functions
     .region('asia-southeast2')
     .https
     .onRequest(async (req, res) => {
-    console.log('Manual book reminder check triggered');
+    console.log('🔥 Manual book reminder check triggered');
     try {
         await (0, notificationService_1.checkOverdueBooks)();
         res.status(200).json({
@@ -39,7 +39,32 @@ exports.manualBookReminderCheck = functions
         });
     }
     catch (error) {
-        console.error('Error in manual book reminder check:', error);
+        console.error('❌ Error in manual book reminder check:', error);
+        res.status(500).json({
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+});
+// Debug function to check transaction data and run overdue check
+exports.debugTransactions = functions
+    .region('asia-southeast2')
+    .https
+    .onRequest(async (req, res) => {
+    console.log('🔍 Debug transactions triggered');
+    try {
+        // First run debug to show current data
+        await (0, notificationService_1.debugTransactionData)();
+        // Then run the overdue check to update fines and send notifications
+        console.log('\n🔄 Running overdue check...');
+        await (0, notificationService_1.checkOverdueBooks)();
+        res.status(200).json({
+            success: true,
+            message: 'Debug and overdue check completed successfully'
+        });
+    }
+    catch (error) {
+        console.error('❌ Error in debug transactions:', error);
         res.status(500).json({
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error'

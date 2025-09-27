@@ -10,6 +10,8 @@ interface Transaction {
   status: string;
   userId: string;
   bookId: string;
+  fine?: number;
+  lateDays?: number;
 }
 
 interface User {
@@ -154,7 +156,18 @@ export async function checkOverdueBooks(): Promise<void> {
           // Book is overdue
           const daysOverdue = Math.abs(daysRemaining);
           console.log(`🚨 OVERDUE: Book is ${daysOverdue} days overdue`);
-          
+
+          // Update fine and lateDays in transaction
+          const currentFine = transaction.fine || 0;
+          const newFine = daysOverdue * 1000;
+          if (newFine > currentFine) {
+            await db.collection('transactions').doc(transaction.id).update({
+              lateDays: daysOverdue,
+              fine: newFine
+            });
+            console.log(`💰 Updated fine for transaction ${transaction.id}: Rp ${newFine} (was Rp ${currentFine})`);
+          }
+
           notificationData = {
             notification: {
               title: '📚 Buku Terlambat!',
@@ -169,7 +182,7 @@ export async function checkOverdueBooks(): Promise<void> {
               userId: transaction.userId
             }
           };
-          
+
           // Also save notification to Firestore for in-app display
           await saveNotificationToFirestore(db, transaction.userId, {
             title: '📚 Buku Terlambat!',
@@ -179,7 +192,40 @@ export async function checkOverdueBooks(): Promise<void> {
             isRead: false,
             createdAt: admin.firestore.FieldValue.serverTimestamp()
           });
-          
+
+          // Save denda notification if fine was updated
+          if (newFine > currentFine) {
+            await saveNotificationToFirestore(db, transaction.userId, {
+              title: '💰 Denda Ditambahkan',
+              message: `Denda untuk buku "${transaction.title}" telah bertambah menjadi Rp ${newFine}.`,
+              type: 'fine_update',
+              transactionId: transaction.id,
+              isRead: false,
+              createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Also send FCM notification for fine update
+            const fineNotificationData = {
+              notification: {
+                title: '💰 Denda Ditambahkan',
+                body: `Denda untuk buku "${transaction.title}" telah bertambah menjadi Rp ${newFine}.`
+              },
+              data: {
+                type: 'fine_update',
+                bookTitle: transaction.title,
+                author: transaction.author,
+                fineAmount: newFine.toString(),
+                transactionId: transaction.id,
+                userId: transaction.userId
+              }
+            };
+
+            notifications.push({
+              token: user.fcmToken,
+              ...fineNotificationData
+            });
+          }
+
         } else if (WARNING_DAYS_BEFORE.includes(daysRemaining)) {
           // Send warning notification
           console.log(`⚠️ REMINDER: ${daysRemaining} days remaining`);

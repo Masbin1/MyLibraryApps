@@ -7,11 +7,11 @@ admin.initializeApp();
 // Import services
 import { checkOverdueBooks, debugTransactionData } from './services/notificationService';
 
-// Scheduled function that runs daily at 9 AM Jakarta time (UTC+7)
+// Scheduled function that runs daily at 7 AM Jakarta time (UTC+7)
 export const dailyBookReminderCheck = functions
   .region('asia-southeast2') // Jakarta region
   .pubsub
-  .schedule('0 9 * * *') // Every day at 9 AM
+  .schedule('0 7 * * *') // Every day at 7 AM
   .timeZone('Asia/Jakarta')
   .onRun(async (context) => {
     console.log('Starting daily book reminder check...');
@@ -48,23 +48,29 @@ export const manualBookReminderCheck = functions
     }
   });
 
-// Debug function to check transaction data
+// Debug function to check transaction data and run overdue check
 export const debugTransactions = functions
   .region('asia-southeast2')
   .https
   .onRequest(async (req, res) => {
     console.log('🔍 Debug transactions triggered');
-    
+
     try {
+      // First run debug to show current data
       await debugTransactionData();
-      res.status(200).json({ 
-        success: true, 
-        message: 'Debug transaction data completed successfully' 
+
+      // Then run the overdue check to update fines and send notifications
+      console.log('\n🔄 Running overdue check...');
+      await checkOverdueBooks();
+
+      res.status(200).json({
+        success: true,
+        message: 'Debug and overdue check completed successfully'
       });
     } catch (error) {
       console.error('❌ Error in debug transactions:', error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
